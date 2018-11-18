@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Bootstrap Core</title>
+
+     <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.7/paper/bootstrap.min.css">
+
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+
+    <!-- Latest compiled JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+    </script>
+
+  </head>
+
+  <body>
+     <div class="container">
+        <div class="row">
+            <div class="col-md-offset-2 col-md-6"><br><h5>
+                    Level 1 column Lots of text Lots of text
+                    Level 1 column Lots of text Lots of text
+                    Level 1 column Lots of text Lots of text
+                    Level 1 column Lots of text Lots of text
+                </h5><br><br><br><br></div>
+        </div>
+     </div>
+
+     <div class="container">
+         <form class="form-horizontal" action="http://httpbin.org/post" method="post">
+            <div class="form-group">
+                <label for="env" class="col-md-offset-2 col-md-2 control-label">Env</label>
+                <div class="col-md-2">
+                <select class="form-control" name="env" >
+                    <option>QA</option>
+                    <option>QABase</option>
+                    <option>QA_C</option>
+                    <option>Dev</option>
+                 </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="book" class="col-md-offset-2 col-md-2 control-label">Book</label>
+                <div class="col-md-2">
+                    <input type="text" class="form-control" name="book" placeholder="EMI1">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="date" class="col-md-offset-2 col-md-2 control-label">Date</label>
+                <div class="col-md-2">
+                    <input type="text" class="form-control" name="date" placeholder="yyyyMMdd">
+                </div>
+            </div>
+
+
+            <div class="form-group">
+                <div class="col-md-offset-5 col-md-2">
+                    <button type="submit" class="btn btn-primary" value="Submit">Submit</button>
+                </div>
+            </div>
+        </form>
+     </div>
+
+
+</body>
+
+</html>
