@@ -53,7 +53,7 @@ def resize_image_if_larger_than_1600(img):
 
 
 
-searchfolder = '/home/quantboy/Pics/2017/201708_jiephone/2016/test'
+searchfolder = sys.argv[1]
 allfiles = os.listdir(searchfolder)
 for f in allfiles:
     if not f.endswith('jpg') and not f.endswith('JPG'):
