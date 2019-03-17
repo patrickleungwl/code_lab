@@ -1,0 +1,21 @@
+C# 1.0- had 
+- class properties
+= delegates and events
+- foreach loops
+- using
+- explicit method overriding
+- operating overloading
+- custom value types
+
+C# 2.0- added
+- generics
+
+C# 3.0 added
+- automatically implemented properties- property getters and setters
+
+C# 4.0 
+- dynamic typing
+
+C# 5.0
+- asynchronous features
+
