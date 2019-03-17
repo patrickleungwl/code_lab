@@ -62,6 +62,24 @@ Widget& Widget::operator=(Widget &&other)
 }
 
 
+bool Widget::operator==(const Widget &other) const
+{
+	bool result = false;
+	if (this->_id == other._id)
+		result = true;
+	return result;
+}
+
+
+bool Widget::operator<(const Widget &other) const
+{
+	bool result = false;
+	if (this->_id > other._id)
+		result = true;
+	return result;
+}
+
+
 int Widget::getId() const
 {
 	return _id;

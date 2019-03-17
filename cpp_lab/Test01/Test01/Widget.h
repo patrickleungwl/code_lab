@@ -13,6 +13,9 @@ public:
 	Widget(Widget &&other);
 	Widget &operator=(Widget &&other);
 
+	bool operator==(const Widget &other) const;
+	bool operator<(const Widget &other) const;
+
 	int getId() const;
 
 private:

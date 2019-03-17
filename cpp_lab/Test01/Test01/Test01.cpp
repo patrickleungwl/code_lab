@@ -17,6 +17,12 @@ int main()
 	Tests tester;
 	tester.TestUniquePtr();
 	tester.TestVectorOfWidgetPointers();
+	tester.TestVectorIteration();
+	tester.TestLambdaOnVector();
+	tester.TestAlgoFindOnVector();
+	tester.TestAlgoMakeHeapOnVector();
+	tester.TestAlgoMakeHeapOnVectorOfInts();
+	tester.TestAlgoMakeHeapOnVectorOfWidgets();
 
 	// Let user check memory usage before exiting
 	int i;
