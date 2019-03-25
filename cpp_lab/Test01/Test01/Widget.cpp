@@ -85,3 +85,8 @@ int Widget::getId() const
 	return _id;
 }
 
+
+int Widget::getContents(int memId) const
+{
+	return pmemory[memId];
+}

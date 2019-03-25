@@ -3,10 +3,105 @@
 #include <memory>
 #include <vector>
 #include <algorithm>
+#include <thread>
 #include "Tests.h"
 #include "Widget.h"
+#include <chrono>
+#include <set>
+
 
 using namespace std;
+
+
+void test_function();
+
+void test_function()
+{
+	cout << "test_function called" << endl;
+}
+
+
+Tests::Tests(int i, int j)
+{
+	cout << "Ctr 2" << endl;
+}
+
+Tests::Tests(int i, int j, int k)
+{
+	cout << "Ctr 3" << endl;
+}
+
+
+void Tests::TestExplicitKeyword()
+{
+	Tests tester(1, 2);
+	Tests testerb(1, 2, 3);
+	Tests testerc{ 1,2 };
+	Tests testerd{ 1,2,3 };
+	Tests testere = { 1,2 };
+	//Tests testerf = { 1,2,3 };
+}
+
+
+void Tests::TestAssignmentOperator()
+{
+
+	cout << "TestAssignmentOperator begin" << endl;
+	vector<Widget> tools;
+	for (int i = 0; i < 10; i++)
+	{
+		tools.push_back(Widget(i));
+	}
+
+	cout << "Test if widgets calls copy ctor or assignment operator now" << endl;
+	for (Widget &t : tools)
+	{
+		Widget temp(10);
+		temp = t;
+	}
+
+	cout << "TestAssignmentOperator end" << endl;
+}
+
+void Tests::TestForEachCopies()
+{
+	cout << "TestForEachCopies begin" << endl;
+	vector<Widget> tools;
+	for (int i = 0; i < 10; i++)
+	{
+		tools.push_back(Widget(i));
+	}
+
+	cout << "Test if any widgets get copied during for iteration" << endl;
+	for (int i = 0; i < 10; i++)
+	{
+		Widget t = tools[i];
+		cout << t.getId() << endl;
+	}
+
+	cout << "Test if widgets calls copy ctor now- using iterator" << endl;
+	typedef vector<Widget> vwid;
+	for (vwid::const_iterator iter = tools.cbegin(); iter != tools.cend(); ++iter)
+	{
+		cout << (*iter).getId() << endl;
+	}
+	
+	cout << "Test if widgets calls copy ctor using dumb value range for" << endl;
+	for (Widget t : tools)
+	{
+		cout << t.getId() << endl;
+	}
+
+
+	cout << "Test if widgets calls copy ctor now" << endl;
+	for (Widget &t : tools)
+	{
+		cout << t.getId() << endl;
+	}
+	
+	cout << "TestForEachCopies end" << endl;
+}
+
 
 void Tests::TestUniquePtr()
 {
@@ -30,6 +125,10 @@ void Tests::TestUniquePtr()
 	// We can also use auto to make code more readable
 
 	auto easyfoo = std::make_unique<Widget>(9);
+	auto easycopy = move(easyfoo);
+
+	// unique_ptrs cannot be copied, only moved
+
 
 	// All widgets should get destroyed at end of this scope
 	cout << "There should be 3 Widget destructor calls after this" << endl;
@@ -48,8 +147,11 @@ void Tests::TestVectorContainerUsage()
 	cout << "adding to tools" << endl;
 	vector<Widget> tools;
 	tools.push_back(wrench);
+	cout << "added wrench" << endl;
 	tools.push_back(ax);
+	cout << "added ax" << endl;
 	tools.push_back(Widget(20));
+	cout << "added temp widget" << endl;
 
 	cout << "TestVectorContainerUsage end" << endl;
 }
@@ -76,24 +178,6 @@ void Tests::TestVectorOfWidgetPointers()
 
 	cout << "Any Widgets get destroyed after this point?" << endl;
 	cout << "TestVectorOfWidgetPointers end" << endl;
-}
-
-
-void Tests::TestVectorOfSharedWidgetPointers()
-{
-	cout << "TestVectorOfSharedWidgetPointers begin" << endl;
-	
-	vector<shared_ptr<Widget>> tools;
-	for (int i = 0; i < 10; i++)
-	{
-		tools.push_back(make_shared<Widget>(i));
-	}
-
-	// is there a memory leak here?
-	// or are 10 Widgets destroyed?
-
-	cout << "10 Widgets should get destroyed after this point" << endl;
-	cout << "TestVectorOfSharedWidgetPointers end" << endl;	
 }
 
 
@@ -261,4 +345,166 @@ void Tests::TestAlgoMakeHeapOnVectorOfWidgets()
 		tools.pop_back();
 	}
 	cout << "TestAlgoMakeHeapOnVectorOfWidgets end" << endl;
+}
+
+
+void Tests::TestNewThreadWithFunction()
+{
+	cout << "TestNewThreadWithFunction begin" << endl;
+	thread test_thread(test_function);
+	test_thread.join();
+	cout << "TestNewThreadWithFunction end" << endl;
+}
+
+
+
+void Tests::TestNewThreadWithLambdaFunction()
+{
+	cout << "TestNewThreadWithLambdaFunction begin" << endl;
+	thread test_thread([](int maxcount) {
+		for (int i = 0; i < maxcount; i++)
+		{
+			cout << i << endl;
+		}
+	}, 8);
+	test_thread.join();
+	cout << "TestNewThreadWithLambdaFunction end" << endl;
+}
+
+
+void Tests::TestVectorPushback()
+{
+	cout << "TestVectorPushback begin" << endl;
+
+	vector<Widget> tools;
+	for (int i = 0; i < 10; i++)
+	{
+		cout << "adding to vector begin " << i << endl;
+		tools.push_back(Widget(i));
+		cout << "adding to vector end " << i << endl;
+	}
+
+	cout << "TestVectorPushback end" << endl;
+}
+
+
+
+void Tests::TestVectorOfSharedWidgetPointers()
+{
+	cout << "TestVectorOfSharedWidgetPointers begin" << endl;
+
+	vector<shared_ptr<Widget>> tools;
+	for (int i = 0; i < 10; i++)
+	{
+		cout << "adding to vector begin " << i << endl;
+		tools.push_back(make_shared<Widget>(i));
+		cout << "adding to vector end " << i << endl;
+	}
+
+	// is there a memory leak here?
+	// or are 10 Widgets destroyed?
+
+	cout << "10 Widgets should get destroyed after this point" << endl;
+	cout << "TestVectorOfSharedWidgetPointers end" << endl;
+}
+
+
+void Tests::TestMoveConstructor()
+{
+	cout << "TestMoveConstructor begin" << endl;
+	Widget w1(10);
+	Widget w2(w1);		// this calls regular copy constructor
+						// the original widget remains intact
+	Widget w3(move(w1));	// this calls move contructor
+							// the move ctr sets m1 contents to null 
+							// this means the original widget is unusable
+
+	cout << w2.getId() << endl;
+	cout << w3.getId() << endl;
+	cout << w1.getId() << endl;
+
+	cout << w2.getContents(2) << endl;
+	cout << w3.getContents(2) << endl;
+	//cout << w1.getContents(2) << endl;	// this one blows up
+
+	cout << "TestMoveConstructor end" << endl;
+
+}
+
+
+void Tests::TestClock()
+{
+	cout << "TestClock begin" << endl;
+
+	using namespace std::chrono;
+
+	high_resolution_clock::time_point t1 = high_resolution_clock::now();
+
+	cout << "printing out 1000 stars...\n";
+	for (int i = 0; i<1000; ++i) 
+		cout << "*";
+	cout << std::endl;
+
+	high_resolution_clock::time_point t2 = high_resolution_clock::now();
+
+	duration<double> time_span = duration_cast<duration<double>>(t2 - t1);
+	cout << "It took me " << time_span.count()  << " sseconds.";
+	cout << std::endl;
+
+
+	cout << "TestClock end" << endl;
+}
+
+
+template <typename T>
+T addTwoNumbers(T a, T b)
+{
+	return a + b;
+}
+
+
+void Tests::TestGenericFunction()
+{
+	cout << "TestGenericFunction begin" << endl;
+
+	int a = addTwoNumbers(6, 7);
+	cout << a << endl;
+
+	double d = addTwoNumbers(7.0, 5.6);
+	cout << d << endl;
+
+	// the following does not work because there is no possible
+	//  addTwoNumbers(int, double) function
+	//int e = addTwoNumbers(7, 5.6);
+	//cout << e << endl;
+
+	cout << "TestGenericFunction end" << endl;
+}
+
+
+
+void Tests::TestSetInsertAndEmplace()
+{
+	cout << "TestSetInsertAndEmplace end" << endl;
+	set<Widget> wset;
+	wset.insert(Widget(10));
+	auto status = wset.insert(Widget(20));
+	cout << " Result: " << status.second << endl;
+		
+	cout << "Emplace with created widget" << endl;
+	wset.emplace(Widget(30));
+
+	cout << "Emplace with ctr parameters" << endl;
+	wset.emplace(40);
+
+	cout << "Looks like less copying and destroying temporary objects with emplace" << endl;
+
+	cout << "Set size " << wset.size() << endl;
+	for (auto &w : wset)
+	{
+		cout << w.getId() << endl;
+	}
+	
+
+	cout << "TestSetInsertAndEmplace end" << endl;
 }
