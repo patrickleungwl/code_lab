@@ -17,6 +17,7 @@ public:
 	bool operator<(const Widget &other) const;
 
 	int getId() const;
+	int getContents(int memId) const;
 
 private:
 	int _id;
