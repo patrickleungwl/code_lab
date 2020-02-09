@@ -5,54 +5,60 @@
 
 using namespace std;
 
-struct price {
+struct bigObject {
 private:
     int _item_id;
-    double _ask_price;
+    vector<double> *_prices;
 public:
-    price(int item_id, double ask_price) :
-        _item_id(item_id),
-        _ask_price(ask_price) {
+    bigObject(int item_id) :
+        _item_id(item_id) {
         cout << "ctr" << endl;
+        _prices = new vector<double>(100);
     }
 
-    price(const price& rp) {
+    bigObject(const bigObject& rp) {
         cout << "copyctr" << endl;
         _item_id = rp._item_id;
-        _ask_price = rp._ask_price;
+        _bigObjects = new vector<double>(100);
+        for (int i=0; i<100; i++ ) {
+            _prices[i] = rp._prices[i];
+        }
     }
 
-    virtual ~price() {
+    virtual ~bigObject() {
         cout << "dtr" << endl;
     }
 
-    price(price &&p) {
+    // move constructor makes a fast copy of internal data
+    // the original data pointer must be set to null
+    bigObject(bigObject &&rp) {
         cout << "movectr" << endl;
-        _item_id = p._item_id;
-        _ask_price = p._ask_price;
+        _item_id = rp._item_id;
+        _bigObjects = rp._bigObjects;
+        rp._bigObjects = nullptr;
     }
 
-    price& operator=(price &&p) {
+    bigObject& operator=(bigObject &&p) {
         if (this != &p) {
             _item_id = p._item_id;
-            _ask_price = p._ask_price;
+            _ask_bigObject = p._ask_bigObject;
         }
         return *this;
     }
     
     inline int get_item() const { return _item_id; }
-    inline double get_price() const { return _ask_price; }
+    inline double get_bigObject() const { return _ask_bigObject; }
 };
 
-ostream& operator<<(ostream &s, const price& p) {
-    s << p.get_item() << ", " << p.get_price();
+ostream& operator<<(ostream &s, const bigObject& p) {
+    s << p.get_item() << ", " << p.get_bigObject();
 }
 
 
-auto get_list_of_prices(int shop_id) {
+auto get_list_of_prices(int shop_id, int num_items) {
 
     vector<price> shop_prices;
-    for (int i=0; i<1; i++) {
+    for (int i=0; i<num_items; i++) {
         shop_prices.push_back(price(shop_id+i,shop_id*i));
     }
 
@@ -62,28 +68,14 @@ auto get_list_of_prices(int shop_id) {
 
 int main() {
 
-//   cout << "hello" << endl;
-//   price p(100,99.9);
-//   cout << p << endl;
+    cout << "*** creating list of prices" << endl;
+    vector<price> prices = get_list_of_prices(0,1);
 
-    cout << "*** creating a map to vector" << endl;
-    map<int, vector<price>> shop_prices;
-
-    cout << "*** creating first shop of prices" << endl;
-    shop_prices[0] = get_list_of_prices(0);
-    cout << "*** creating second shop of prices" << endl;
-    shop_prices[1] = get_list_of_prices(1);
-
-    for (int shop=0; shop<2; shop++) {
-        cout << "***  reading shop " << shop << endl;
-        auto prices = shop_prices[shop];
-        int i=0;
-        cout << "item/price=";
-        for (auto p : prices) {
-            cout << "(" << p << "), ";
-        }
-        cout << endl;
+    cout << "iteration start" << endl;
+    for (auto p : prices) {
+        cout << "(" << p << "), " << endl;
     }
+    cout << "iteration end" << endl;
 }
 
 
