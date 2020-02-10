@@ -5,77 +5,131 @@
 
 using namespace std;
 
-struct bigObject {
-private:
-    int _item_id;
-    vector<double> *_prices;
+
+class TestClass
+{
 public:
-    bigObject(int item_id) :
-        _item_id(item_id) {
-        cout << "ctr" << endl;
-        _prices = new vector<double>(100);
-    }
-
-    bigObject(const bigObject& rp) {
-        cout << "copyctr" << endl;
-        _item_id = rp._item_id;
-        _bigObjects = new vector<double>(100);
-        for (int i=0; i<100; i++ ) {
-            _prices[i] = rp._prices[i];
-        }
-    }
-
-    virtual ~bigObject() {
-        cout << "dtr" << endl;
-    }
-
-    // move constructor makes a fast copy of internal data
-    // the original data pointer must be set to null
-    bigObject(bigObject &&rp) {
-        cout << "movectr" << endl;
-        _item_id = rp._item_id;
-        _bigObjects = rp._bigObjects;
-        rp._bigObjects = nullptr;
-    }
-
-    bigObject& operator=(bigObject &&p) {
-        if (this != &p) {
-            _item_id = p._item_id;
-            _ask_bigObject = p._ask_bigObject;
-        }
-        return *this;
-    }
-    
-    inline int get_item() const { return _item_id; }
-    inline double get_bigObject() const { return _ask_bigObject; }
+    explicit TestClass(double d) : _d(d) {};
+private:
+    double _d;
 };
 
-ostream& operator<<(ostream &s, const bigObject& p) {
-    s << p.get_item() << ", " << p.get_bigObject();
+
+void testExplicitKeyword()
+{
+    vector<TestClass> v1;
+
+    // with explicit keyword in constructor
+    // this is no longer legal
+    // v1.push_back(1.0);
+
+    // have to say this
+    v1.push_back(TestClass(1.0));
 }
 
 
-auto get_list_of_prices(int shop_id, int num_items) {
+void testMultiMap()
+{
+    multimap<string, int> mm{
+        {"mickey", 100},
+        {"minnie", 150},
+        {"mickey", 200},
+        {"minnie", 300},
+        {"minnie", 400}
+    };
 
-    vector<price> shop_prices;
-    for (int i=0; i<num_items; i++) {
-        shop_prices.push_back(price(shop_id+i,shop_id*i));
+    cout << "mickey count " << mm.count("mickey") << endl;
+    cout << "minnie count " << mm.count("minnie") << endl;
+    auto res = mm.equal_range("mickey");
+    for (auto iter=res.first; iter != res.second; ++iter) {
+        cout << iter->first << " " << iter->second << endl;
     }
-
-    return shop_prices;
+    res = mm.equal_range("minnie");
+    for (auto iter=res.first; iter != res.second; ++iter) {
+        cout << iter->first << " " << iter->second << endl;
+    }
+    // erase just the second instance of minnie
+    // reverse iterate because erasing a member removes 
+    // member from container
+    for (auto iter=res.second; iter != res.first; --iter) {
+        if (iter->second>=300) {
+            iter = mm.erase(iter);
+        }
+    }
+    cout << "after erasing select instances of minnie" << endl;
+    res = mm.equal_range("minnie");
+    for (auto iter=res.first; iter != res.second; ++iter) {
+        cout << iter->first << " " << iter->second << endl;
+    }
 }
 
 
-int main() {
+void testInitialisingVectors()
+{
+    // initialise the old way
+    vector<int> v1;
+    v1.push_back(1);
+    v1.push_back(2);
 
-    cout << "*** creating list of prices" << endl;
-    vector<price> prices = get_list_of_prices(0,1);
+    // initialise the new way
+    vector<int> v2{1,2};
 
-    cout << "iteration start" << endl;
-    for (auto p : prices) {
-        cout << "(" << p << "), " << endl;
+    // initialise using with and without =
+    vector<int> v3 = {1,2};
+}
+
+
+void testInitialisingMaps()
+{
+    // initialise the old way
+    map<int, string> m1;
+    m1[1] = "hello";
+    cout << "m1 " << 1 << "->" << m1[1] << endl;
+    
+    // another old way
+    typedef map<int, string>::iterator miter;
+    pair<miter, bool> result = m1.insert( pair<int, string>(2,"world") );
+    if (result.second) { 
+        cout << "m1 " 
+             << (result.first)->first 
+             << "->" << (result.first)->second << endl;
+    } else {
+        cout << "m1 failed to insert" << endl;
     }
-    cout << "iteration end" << endl;
+
+    // reinsert same key again
+    pair<miter, bool> result2 = m1.insert( pair<int, string>(2,"world") );
+    if (result2.second) { 
+        cout << "m1 " 
+             << (result2.first)->first 
+             << "->" << (result2.first)->second << endl;
+    } else {
+        cout << "m1 failed to insert great!" << endl;
+    }
+
+    // initialise the new way
+    map<int,string> m2{
+        {1, "hello"},
+        {2, "world"}
+    };
+
+    cout << "m2 " << 1 << "->" << m2[1] << endl;
+    cout << "m2 " << 2 << "->" << m2[2] << endl;
+
+    // initialise the new way with =
+    map<int,string> m3 = {
+        {1, "hello"},
+        {2, "world"}
+    };
+}
+
+
+int main() 
+{
+    testExplicitKeyword();
+    testMultiMap();
+    testInitialisingVectors();
+    testInitialisingMaps();
 }
 
 
