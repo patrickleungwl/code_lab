@@ -7,6 +7,14 @@ def get_input(file):
         tmp = f.read()
     return tmp
 
+# input is intcode program
+# 
+# First number is opcode - 
+# 99 - stop
+# 1,a,b,c - read from positions a and b and store the sum in c
+# 2,a,b,c - read from positions a and b and store the product in c
+# advance by 4 positions
+#
 
 def parse(codes,inp1=0,inp2=0):
     incs = codes.split(',')
