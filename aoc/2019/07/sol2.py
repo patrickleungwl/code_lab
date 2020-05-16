@@ -12,7 +12,7 @@ def get_input(file):
 def get_all_phases_combinations():
     allphases = []
 
-    pm = itertools.permutations('01234')
+    pm = itertools.permutations('56789')
     for p in pm:
         phases = []
         for i in range(0,len(p)):
@@ -300,7 +300,8 @@ def digits_repeat(phases):
 assert(digits_repeat([1,2,3,4,5])==False)
 assert(digits_repeat([1,5,3,4,5])==True)
 
-
+# part 1's ordinary thruster
+#
 # first input = phase
 # second input = input signal.  
 #                input signal to first amplier is 0
@@ -311,7 +312,8 @@ def run_thruster(input,phases):
     for amp in range(0,5):
         phase = phases[amp]
         (codes,cout_result) = run_program(input,input_signal,phase)
-        input_signal = int(cout_result)
+        results=cout_result.split('\n')
+        input_signal = int(result[0])
     return input_signal 
 
 input = '3,15,3,16,1002,16,10,16,1,16,15,15,4,15,99,0,0'
@@ -326,24 +328,46 @@ input = '3,31,3,32,1002,32,10,32,1001,31,-2,31,1007,31,0,33,1002,33,7,33,1,33,31
 phases = [1,0,4,3,2]
 assert(run_thruster(input,phases)==65210)
 
+
+# part 2's feedback thruster
+#
+
+def run_feedback_thruster(input,phases):
+    input_signal = 0
+
+    while True:
+        for amp in range(0,5):
+            phase = phases[amp]
+            (codes,cout_result) = run_program(input,input_signal,phase)
+            input_signal = int(cout_result)
+            print(cout_result)
+    return input_signal 
+
+
+input = '3,26,1001,26,-4,26,3,27,1002,27,2,27,1,27,26,27,4,27,1001,28,-1,28,1005,28,6,99,0,0,5'
+phases = [9,8,7,6,5]
+print(run_feedback_thruster(input,phases))
+
+#input = '3,52,1001,52,-5,52,3,53,1,52,56,54,1007,54,5,55,1005,55,26,1001,54,-5,54,1105,1,12,1,53,54,53,1008,54,0,55,1001,55,1,55,2,53,55,53,4,53,1001,56,-1,56,1005,56,6,99,0,0,0,0,10'
+#phases = [9,7,8,5,6]
+#print(run_feedback_thruster(input,phases))
+
 # run puzzle for real
-input = get_input(sys.argv[1])
-print(input)
-
-
+#input = get_input(sys.argv[1])
 
 # try every combination of 0-4 
 # get the max thrust output from the 5 amps
-max_thrust = -1
-allphases = get_all_phases_combinations()
+#max_thrust = -1
+#allphases = get_all_phases_combinations()
+#
+#for phases in allphases:
+#    thrust = run_thruster(input,phases)
+#    print('%i at %s' % (thrust,phases))
+#    if thrust > max_thrust:
+#        max_thrust = thrust
+#        print('max %i at %s' % (thrust,phases))
+#
+#print('abs max %i' % (max_thrust))
 
-for phases in allphases:
-    thrust = run_thruster(input,phases)
-    print('%i at %s' % (thrust,phases))
-    if thrust > max_thrust:
-        max_thrust = thrust
-        print('max %i at %s' % (thrust,phases))
-
-print('abs max %i' % (max_thrust))
 
 
