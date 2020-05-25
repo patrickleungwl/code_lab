@@ -127,7 +127,7 @@ def get_parameter_modes(code):
 
 # input is intcode program
 
-def run_amp(input_str):
+def run_amp(input_str, input_phase, input_value=-1):
 
     cout_results = ''
     codes = split_string(input_str)
@@ -162,13 +162,20 @@ def run_amp(input_str):
 
         if opcode == 3:
             trgt = results[1]
-            # read from stdin
-            strin = sys.stdin.readline()
-            codes[trgt] = int(strin.strip())
+            if input_phase >= 0:
+                codes[trgt] = input_phase
+                input_phase = -1
+            else if input_value >= 0:
+                codes[trgt] = input_value
+                input_value = -1
+            else:
+                # read from stdin
+                strin = os.read(plisten, 4)
+                codes[trgt] = int(strin.strip())
 
         if opcode == 4:
             trgt = results[1]
-            print('%i\n' % (trgt))
+            os.write(psend, trgt)
 
         if opcode == 7:
             param1 = results[1]
@@ -189,6 +196,33 @@ def run_amp(input_str):
     return (combine_codes(codes),cout_results.strip())
 
 
+phase   = argv[1]
+amp_nm  = argv[2]
+amp_src = argv[3]
+amp_tgt = argv[4]
+input_val = -1
 
+listen_channel = '%s2%s' % (amp_src, amp_nm)
+send_channel = '%s2%s' % (amp_nm, amp_tgt)
+print('phase    = %s' % phase)
+if amp_nm == 'A':
+    input_val = 0
+print('first input = %i' % input_val)
+print('amp name = %s' % amp_nm)
+print('listening to %s' % listen_channel)
+print('sending to %s' % send_channel)
 
+plisten = os.open(listen_channel, os.O_RDONLY)
+psend = os.open(send_channel, os.O_WRONLY)
 
+print('channel pipes started')
+
+input = '3,26,1001,26,-4,26,3,27,1002,27,2,27,1,27,26,27,4,27,1001,28,-1,28,1005,28,6,99,0,0,5'
+
+# phase-  is the first input 
+# first input value- only given to amp A; all others are -1
+# 
+# python amp.py (phase) (amp name) (msg src) (msg tgt)
+# python amp.py 5 A E B
+
+print(run_amp(

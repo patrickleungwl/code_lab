@@ -74,11 +74,24 @@ def decode_frames(frames):
 
         #print('final %s' % (color))
         final.append(color)
-    print(''.join(final))
+    result = (''.join(final))
+    print(result)
+    return result
 
+def break_line_into_pic(input,x,y):
+    i = 0
+    for row in range(0,y):
+        dx = i+x
+        rowpic = input[i:dx]
+        rowpic = rowpic.replace('0',' ')
+        print(rowpic)
+        i = dx
 
-#input = get_input('input.txt')
-#frames = split_into_layers(input,25,6)
-frames = split_into_layers('0222112222120000',2,2)
-decode_frames(frames)
+#frames = split_into_layers('0222112222120000',2,2)
+#break_line_into_pic(decode_frames(frames),2,2)
+
+input = get_input('input.txt')
+frames = split_into_layers(input,25,6)
+break_line_into_pic(decode_frames(frames),25,6)
+
 
