@@ -18,6 +18,19 @@ class Point:
         else:
             return False
 
+    def isAt(self,other):
+        if abs(self.x-other.x)<0.002 and abs(self.y-other.y)<0.002:
+            return True
+        else:
+            return False
+
+    def isNear(self,other):
+        if abs(self.x-other.x)<2.0 and abs(self.y-other.y)<2.0:
+            return True
+        else:
+            return False
+
+
     def setAsteroid(self):
         self.hasAsteroid = True 
 
@@ -34,15 +47,22 @@ class Point:
             return (False, 0, 0)
 
 
-def get_input(file):
+#-------------------------------------------------------------
+# getInput
+# 
+
+def getInput(file):
     tmp = ''
     with open(file) as f:
         tmp = f.read()
     return tmp
 
 
+#-------------------------------------------------------------
+# convertTextToMap
+#
 
-def convert_text_to_map(input):
+def convertTextToMap(input):
     rows = input.split('\n')
     space_map = [] # rows
     for r in rows:
@@ -58,88 +78,46 @@ def convert_text_to_map(input):
     return space_map
 
 
-# is_vertical
+#-------------------------------------------------------------
+# getIncrementalDxDy
+#
 
-def is_vertical(srcPt, tgtPt):
-    if abs(tgtPt.x - srcPt.x) < 0.1:
-        return True
-    return False
-
-
-# get_slope
-#  find the slope- dy/dx between 
-#  points source (xs,ys) 
-#  and    target (xt,yt) 
-
-def get_slope(srcPt, tgtPt):
-    dx = float(tgtPt.x -srcPt.x)
-    dy = tgtPt.y - srcPt.y 
-    m  = dy / dx
-    return m
-
-# get_path
-#  return the set of points in between
-#  srcPt and tgtPt
-
-def get_path(srcPt, tgtPt):
-    points = []
-    isReversed = False
-
-    if is_vertical(srcPt, tgtPt):
-        start_y = srcPt.y
-        target_y = tgtPt.y  
-        if target_y < start_y:
-            start_y = tgtPt.y
-            target_y = srcPt.y
-            isReversed = True
-        y = start_y + 1.0
-        while y <= target_y:
-            pt = Point(srcPt.x,y)
-            points.append(pt)
-            y = y + 1.0
-    else:
-        # this is a slope
-
-        m = get_slope(srcPt, tgtPt)
-        print('slope m %f' % m)
-
-        dx = 1.0
-        start_x = srcPt.x
-        target_x = tgtPt.x
-        if target_x < start_x:
-            start_x = tgtPt.x
-            target_x = srcPt.x
-            isReversed = True
-            dx = -1.0
-        # should we go left?
+def getIncrementalDxDy(ptStart,ptEnd):
+    dx = (ptEnd.x - ptStart.x) / 10000.0
+    dy = (ptEnd.y - ptStart.y) / 10000.0
+    return (dx,dy)
 
 
-        x = start_x + dx
-        while x <= target_x:
-            y = srcPt.y + (m*x)
-            pt = Point(x,y)
-            points.append(pt)
-            x = x + 1.0
+#-------------------------------------------------------------
+# getApproximateDxDy
+#
 
-    if isReversed:
-        points.reverse()
-
-    return points
+def getApproximateDxDy(ptStart,ptEnd):
+    dx = (ptEnd.x - ptStart.x) / 1000.0
+    dy = (ptEnd.y - ptStart.y) / 1000.0
+    return (dx,dy)
 
 
-def get_all_map_points(space_map):
+#-------------------------------------------------------------
+# getAllRocks
+#
+
+def getAllRocks(space_map):
     allPoints = []
     for y in range(0,len(space_map)):
         row = space_map[y]
         for x in range(0,len(row)):
-            p = Point(x,y)
             if space_map[y][x] == 1:
+                p = Point(x,y)
                 p.setAsteroid()
-            allPoints.append(p)
+                allPoints.append(p)
     return allPoints
 
 
 
+#-------------------------------------------------------------
+# generateSpaceViewMap
+#
 # now for every point in map
 # for each point A
 #   to each target point B
@@ -149,122 +127,205 @@ def get_all_map_points(space_map):
 #           if yes, then A to B is blocked
 #           
 
-def generate_space_view_map(spaceMap):
-    allPoints = get_all_map_points(spaceMap)
-    for srcP in allPoints:
-        if not srcP.hasAsteroid:
-            continue
-
-        print('checking asteroid at- %i %i' % (srcP.x,srcP.y))
+def generateSpaceViewMap(spaceMap):
+    allRocks = getAllRocks(spaceMap)
+    maxRockViewCount = 0
+    for srcP in allRocks:
 
         # now let's scan all other asteroids from x,y
-        totalAsteroidCanView = 0
-        targetPoints = get_all_map_points(spaceMap)
-        for tgtP in targetPoints:
-            if not tgtP.hasAsteroid:
+        totalRockViewCount = 0
+        otherRocks = getAllRocks(spaceMap)
+        for otherP in otherRocks:
+            if srcP == otherP:
                 continue
-
-            if srcP == tgtP:
-                continue
-
-            print('  checking src (%f %f) to (%f %f)' % (srcP.x, srcP.y, tgtP.x, tgtP.y))
-            
-            # once we have all the points along the path
-            # check- 
-            #  does the point contain an asteroid
-            #  is the asteroid the target?  
-            #    if yes, then can view
-            #    if not, then view is blocked
-            canView = False
-            pathPoints = get_path(srcP,tgtP)
-            for p in pathPoints:
-                print('    path %f %f' % (p.x,p.y))
-                if p == tgtP:
-                    print(' canview %f %f' % (p.x,p.y))
-                    canView = True
+           
+            # now let's see if any rocks are in btween srcP to otherP
+            blocked = False
+            allRocks = getAllRocks(spaceMap)
+            for oneP in allRocks:
+                if isBlocked(srcP,otherP,oneP):
+                    blocked = True
                     break
             
-            if canView:
-                totalAsteroidCanView = totalAsteroidCanView+1
+            if blocked == False:
+                totalRockViewCount = totalRockViewCount+1
+            canSee = not blocked
+            #print('  (%f %f) to (%f %f) = canSee %s' % (srcP.x, srcP.y, otherP.x, otherP.y, canSee))
 
-        print('  totalAsteroidCanView %f' % totalAsteroidCanView)
+        if totalRockViewCount > maxRockViewCount:
+            maxRockViewCount = totalRockViewCount
+            print('  maxView %f at (%f %f)' % (maxRockViewCount, srcP.x, srcP.y))
+
+#-------------------------------------------------------------
+# isOutsideStartAndEndBorders
+#
+# we try to optimise a bit and check if the rock under test
+# is without our starting rock and ending rock region
+#
+# if the test rock is outside our starting and ending rock region
+# then should just return True
+# and we can avoid testing this rock since we already know
+# that it's outside our region and so cannot get in the way 
+# of viewing between starting rock and ending rock points
+#
+
+def isOutsideStartAndEndBorders(ptStart,ptEnd,ptTest):
+    # let's optimise a bit
+    # we can assume there is no block if
+    #   ptTest.x is not in between ptStart.x and ptEnd.x
+    # OR
+    #   ptTest.y is not in between ptStart.y and ptEnd.y 
+
+    # leftX is smaller than rightX
+    leftX = ptStart.x
+    rightX = ptEnd.x
+    if leftX > rightX:
+        leftX = ptEnd.x
+        rightX = ptStart.x
+
+    # topY is smaller than bottomY
+    topY = ptStart.y
+    bottomY = ptEnd.y
+    if topY > bottomY:
+        topY = ptEnd.y
+        bottomY = ptStart.y
+
+    if ptTest.x < leftX or ptTest.x > rightX:
+        return True
+    if ptTest.y < topY or ptTest.y > bottomY:
+        return True
+
+    return False
 
 
-ptOrigin = Point(1,0)
-ptTargetA = Point(0,2)
-pathPoints = get_path(ptOrigin, ptTargetA)
-p = pathPoints[0]
-print('%i' % len(pathPoints))
-print('test %f %f' % (p.x, p.y))
+#-------------------------------------------------------------
+# isBlocked
+#
+# check if ptTest is between line with endpoints ptStart and ptEnd
+# 
+
+def isBlocked(ptStart,ptEnd,ptTest,debug=False):
+    if debug:
+        print(' isBlocked start(%f %f) end(%f %f) test(%f %f)' %
+                (ptStart.x, ptStart.y, ptEnd.x, ptEnd.y, ptTest.x, ptTest.y))
+    if ptStart.isAt(ptTest):
+        return False
+    if isOutsideStartAndEndBorders(ptStart,ptEnd,ptTest):
+        return False
+
+    (idx,idy) = getIncrementalDxDy(ptStart,ptEnd)
+    (adx,ady) = getApproximateDxDy(ptStart,ptEnd)
+    dx = idx
+    dy = idy
+    while (not ptStart.isAt(ptEnd)):
+        # we've hit our test, so there is a block
+        if ptStart.isAt(ptTest):
+            return True
+
+        newX = ptStart.x + dx
+        newY = ptStart.y + dy
+        ptStart = Point(newX,newY)
+        if debug:
+            print(' checking %f %f' % (newX, newY))
+
+    # we've hit our target, so there is no block
+    if ptStart.isAt(ptEnd):
+        return False
+
+    # by default there is a block
+    return True
 
 
-ptOrigin = Point(0,0)
-ptTargetA = Point(4,4)
-ptTargetB = Point(4,2)
-ptTargetC = Point(4,0)
-ptTargetD = Point(0,4)
-ptTargetE = Point(1,0)
-assert(get_slope(ptOrigin, ptTargetA)==1.0)
-assert(get_slope(ptOrigin, ptTargetB)==0.5)
+#   012345678
+# 0 FE  D 
+# 1 
+# 2 G H
+# 3
+# 4 C B A
+#
+#
+# F cannot see D because E is in the way.
+# F cannot see A because H is in the way.
+# F cannot see C because G is in the way.
+# A cannot see F because H is in the way.
+# C cannot see F because G is in the way.
+# A cannot see C because B is in the way.
+# C cannot see A because B is in the way.
 
-# 45 degree path
-pathPoints = get_path(ptOrigin, ptTargetA)
-assert(len(pathPoints)==4)
-assert(Point(1,1) == pathPoints[0])
-assert(Point(2,2) == pathPoints[1])
-assert(Point(3,3) == pathPoints[2])
-assert(Point(4,4) == pathPoints[3])
+pF = Point(0,0)
+pE = Point(1,0)
+pD = Point(4,0)
+pG = Point(0,2)
+pC = Point(0,4)
+pH = Point(2,2)
+pA = Point(4,4)
+pB = Point(2,4)
 
-## 22.5 degree path
-pathPoints = get_path(ptOrigin, ptTargetB)
-assert(len(pathPoints)==4)
-assert(Point(1,0.5) == pathPoints[0])
-assert(Point(2,1) == pathPoints[1])
-assert(Point(3,1.5) == pathPoints[2])
-assert(Point(4,2) == pathPoints[3])
+assert(isBlocked(pF,pC,pG))
+assert(isBlocked(pC,pF,pG))
+assert(isBlocked(pF,pD,pE))
+assert(isBlocked(pF,pE,pE)==False)
+assert(isBlocked(pE,pF,pF)==False)
+assert(isBlocked(pE,pF,pF)==False)
 
-# horizonal right path
-pathPoints = get_path(ptOrigin, ptTargetC)
-assert(len(pathPoints)==4)
-assert(Point(1,0) == pathPoints[0])
-assert(Point(2,0) == pathPoints[1])
-assert(Point(3,0) == pathPoints[2])
-assert(Point(4,0) == pathPoints[3])
+assert(isBlocked(pG,pD,pD)==False)
+assert(isBlocked(pD,pG,pG)==False)
+assert(isBlocked(pF,pG,pG)==False)
+assert(isBlocked(pF,pH,pH)==False)
+assert(isBlocked(pF,pA,pH))
+assert(isBlocked(pA,pF,pH))
+assert(isBlocked(pA,pH,pH)==False)
 
-# horizonal left path
-pathPoints = get_path(ptTargetC, ptOrigin)
-assert(len(pathPoints)==4)
-assert(Point(4,0) == pathPoints[0])
-assert(Point(3,0) == pathPoints[1])
-assert(Point(2,0) == pathPoints[2])
-assert(Point(1,0) == pathPoints[3])
+assert(isBlocked(pD,pB,pH)==False)
+assert(isBlocked(pB,pD,pH)==False)
+assert(isBlocked(pB,pE,pH)==False)
+assert(isBlocked(pE,pB,pH)==False)
 
-# vertical down path
-pathPoints = get_path(ptOrigin, ptTargetD)
-assert(len(pathPoints)==4)
-assert(Point(0,1) == pathPoints[0])
-assert(Point(0,2) == pathPoints[1])
-assert(Point(0,3) == pathPoints[2])
-assert(Point(0,4) == pathPoints[3])
+assert(isBlocked(pC,pD,pH))
+assert(isBlocked(pD,pC,pH))
+assert(isBlocked(pD,pH,pH)==False)
+assert(isBlocked(pC,pH,pH)==False)
+assert(isBlocked(pH,pC,pC)==False)
 
-# vertical up path
-pathPoints = get_path(ptTargetD, ptOrigin)
-assert(len(pathPoints)==4)
-assert(Point(0,4) == pathPoints[0])
-assert(Point(0,3) == pathPoints[1])
-assert(Point(0,2) == pathPoints[2])
-assert(Point(0,1) == pathPoints[3])
+pS = Point(4,2)
+pE = Point(1,2)
+pT0 = Point(0,2)
+pT1 = Point(1,2)
+pT2 = Point(2,2)
+pT3 = Point(3,2)
+assert(isBlocked(pS,pE,pT0)==False)
+assert(isBlocked(pS,pE,pT1)==False)
+assert(isBlocked(pS,pE,pT2))
+assert(isBlocked(pS,pE,pT3))
 
-# next point over
-pathPoints = get_path(ptOrigin, ptTargetE)
-assert(len(pathPoints)==1)
-assert(Point(1,0) in pathPoints)
+infile = getInput('input.txt')
+spaceMap = convertTextToMap(infile)
+print(spaceMap)
+generateSpaceViewMap(spaceMap)
 
-map1 = get_input('test1.txt')
-spaceMap = convert_text_to_map(map1)
-# y=0, x=1
-assert(spaceMap[0][1] == 1)
-generate_space_view_map(spaceMap)
+infile = getInput('test1.txt')
+spaceMap = convertTextToMap(infile)
+print(spaceMap)
+generateSpaceViewMap(spaceMap)
 
+infile = getInput('test2.txt')
+spaceMap = convertTextToMap(infile)
+print(spaceMap)
+generateSpaceViewMap(spaceMap)
+
+infile = getInput('test3.txt')
+spaceMap = convertTextToMap(infile)
+print(spaceMap)
+generateSpaceViewMap(spaceMap)
+
+infile = getInput('test4.txt')
+spaceMap = convertTextToMap(infile)
+print(spaceMap)
+generateSpaceViewMap(spaceMap)
+
+infile = getInput('test5.txt')
+spaceMap = convertTextToMap(infile)
+print(spaceMap)
+generateSpaceViewMap(spaceMap)
 
 
