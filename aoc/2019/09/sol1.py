@@ -411,8 +411,7 @@ program = '109,1,3,3,204,2,99'
 assert(run_program(program,87)[1] == '87') 
 
 program = '109,1,203,2,204,2,99'
-print(run_program(program,888))
-#assert(run_program(program,888)[1] == '888')
+assert(run_program(program,888)[1] == '888')
 
 
 input = get_input(sys.argv[1])
