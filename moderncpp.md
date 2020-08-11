@@ -78,3 +78,12 @@ function.   Here are some restrictions:
 All built-in types and some user-defined types are literal types- 
 provided they have const data members and a trivial destructor. 
 
+**Interesting trivia!**
+
+A data member of a struct or class **cannot** be constexpr.  It can
+only be *static constexpr*.  The reason is because a process can only
+create an instance of a struct or class at runtime.  The compiler does
+not know the value of the data member at compile time unless there is 
+only one (static) instance of that data member. 
+
+
