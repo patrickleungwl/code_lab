@@ -1,4 +1,4 @@
-## Cpp 11 Features
+## Modern Cpp Features
 
 ### Static Assertions
 
@@ -39,25 +39,42 @@ execution time costs- and generated code.  This follows our
 development philosophy that it is best to catch errors as early
 as possible- in this case- during compile time instead of at runtime.
 
-Also, function can be made constexpr.  Constant expression functions
-will be evaluated at compile time.  The only constraint on constexpr
-functions is that they do not have any side effects.  In C++ 11, 
-they also cannot have any loops although this restriction was removed
-in C++ 14.
-
-Examples:
+Furthermore, constexpr functions tell the compiler that it only
+returns constant literal types.  Consider the following:
 
 ~~~
-constexpr int const8 = 8;
+const int getArraySize() { return 42; }
 
-struct structA {
-   static constexpr char name[] = "myname";
-   ...
-};
+int main() {
+    int myArray[getArraySize()];  // this fails to compile
+    return 0;
+}
+~~~~
+
+But with constexpr, the compiler sees getArraySize() as returning a 
+constant at compile time:
 
 ~~~
+constexpr int getArraySize() { return 42; }
 
-Constexpr functions have interesting dual-use features.  When constexpr
-functions are passed compile-time constants, they get evaluated at compile
-time.  When constexpr functions are called with parameters not known 
-at compile-time, they act like regular functions and get evaluated at runtime.
+int main() {
+    int myArray[getArraySize()];  // OK
+    return 0;
+}
+~~~~
+
+Because a compiler has to evaluate a function at compile time, a 
+constexpr has a lot of restrictions- basically it must be a simple
+function.   Here are some restrictions:
+
+* cannot throw exceptions, no try-catch blocks, no gotos
+* no calls to other constexpr functions
+* the return type must be a literal type, no void.
+* cannot be a virtual constexpr member function
+* all arguments must be literal types
+* no new, delete, or dynamic_casts
+
+**Literal types** are types that can be determined at compile time.  
+All built-in types and some user-defined types are literal types- 
+provided they have const data members and a trivial destructor. 
+
