@@ -1,5 +1,27 @@
 ## Modern Cpp Features
 
+* lambda expressions
+* hashed containers- unordered_map
+* thread, mutex, lock
+* future, promise, async
+* unique_ptr
+* shared_ptr
+
+### Lambda Expressions
+
+A lambda expression is an anonymous function object (a closure) 
+for passing an operation as an argument to an algorithm or asynchornous
+methods.  The notation for defining a lambda consists of- 
+
+* capture list- list of variables to use inside lambda and whether by 
+   copy or by reference
+* parameter list (optional)- parameters in the lambda
+* mutable (optional)
+* noexcept (optional)
+* return type (optional)
+* body- the lambda logic
+
+
 ### Static Assertions
 
 Static Assertions are intended to catch errors at compile time. 
@@ -16,9 +38,9 @@ static_assert(myval<10, "myval is unexpected");
 
 There are two streams of immutability in C++.  
 
-* **const** means 'this value will not change'.  This is primarily used
++ const means 'this value will not change'.  This is primarily used
 for declaring interfaces.
-* **constexpr** means 'the compiler will evaluate this at compile time'. 
++ constexpr means 'the compiler will evaluate this at compile time'. 
 
 Examples:
 
@@ -74,9 +96,9 @@ function.   Here are some restrictions:
 * all arguments must be literal types
 * no new, delete, or dynamic_casts
 
-**Literal types** are types that can be determined at compile time.  
-All built-in types and some user-defined types are literal types- 
-provided they have const data members and a trivial destructor. 
+**Literal types** are types that can be determined at compile time.  All 
+built-in types and some user-defined types are literal types- provided 
+they have const data members and a trivial destructor. 
 
 **Interesting trivia!**
 

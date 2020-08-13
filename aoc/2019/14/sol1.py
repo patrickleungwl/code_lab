@@ -1,3 +1,4 @@
+import sys
 
 # name and qty of a component
 #
@@ -314,7 +315,12 @@ assert(comp6.name=='HKGWZ')
 assert(comp6.qty==48)
 
 
-clerk = Clerk('input.txt')
+if len(sys.argv)<1: 
+    print("sol1.py input.txt")
+    sys.exit(0)
+
+filename = sys.argv[1]
+clerk = Clerk(filename)
 clerk.show_recipes()
 print('Clerk max level = %i' % clerk.max_level)
 

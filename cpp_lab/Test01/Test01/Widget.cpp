@@ -6,21 +6,34 @@ using namespace std;
 
 Widget::Widget(int i) : _id(i)
 {
-	cout << "Widget ctor" << endl;
+	++widgetCount;
 	pmemory = new int[widget_size];
 	memset(pmemory, 88, sizeof(int)*widget_size);
 }
 
 Widget::~Widget()
 {
-	cout << "Widget dtor" << endl;
+	--widgetCount;
 	delete pmemory;
 }
+
+/*
+Widget::Widget(Widget& other)
+{
+	++copyConstructorCount;
+	cout << "Widget copy ctor" << endl;
+	_id = other._id;
+	pmemory = new int[widget_size];
+	memcpy(pmemory, other.pmemory, sizeof(int) * widget_size);
+}
+*/
 
 
 Widget::Widget(const Widget &other)
 {
-	cout << "Widget copy ctor" << endl;
+	++widgetCount;
+	++copyConstructorCount;
+	//cout << "Widget const copy ctor" << endl;
 	_id = other._id;
 	pmemory = new int[widget_size];
 	memcpy(pmemory, other.pmemory, sizeof(int)*widget_size);
@@ -29,7 +42,7 @@ Widget::Widget(const Widget &other)
 
 Widget &Widget::operator=(const Widget &other)
 {
-	cout << "Widget assignment optr" << endl;
+	++assignmentCount;
 	if (this == &other)
 		return *this;
 
@@ -40,16 +53,18 @@ Widget &Widget::operator=(const Widget &other)
 }
 
 
-Widget::Widget(Widget &&other) :
+Widget::Widget(Widget &&other) noexcept :
 	_id(other._id),
-	pmemory(other.pmemory)
+	pmemory(other.pmemory) 
 {
-	cout << "Widget move ctor" << endl;
+	++widgetCount;
+	++moveConstructorCount;
+	//cout << "Widget move ctor" << endl;
 	other.pmemory = nullptr;
 }
 
 
-Widget& Widget::operator=(Widget &&other)
+Widget& Widget::operator=(Widget &&other) noexcept
 {
 	cout << "Widget move optr" << endl;
 	if (this == &other)

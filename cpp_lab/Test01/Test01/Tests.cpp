@@ -4,236 +4,463 @@
 #include <vector>
 #include <algorithm>
 #include <thread>
-#include "Tests.h"
-#include "Widget.h"
 #include <chrono>
 #include <set>
+#include "Tests.h"
+#include "Widget.h"
+#include <assert.h>
 
+using namespace std::chrono;
 
-using namespace std;
-
+// set Widget global count to 0
+int Widget::widgetCount = 0;
+int Widget::assignmentCount = 0;
+int Widget::copyConstructorCount = 0;
+int Widget::moveConstructorCount = 0;
 
 void test_function();
 
 void test_function()
 {
-	cout << "test_function called" << endl;
+	std::cout << "test_function called" << std::endl;
 }
 
 
-Tests::Tests(int i, int j)
+Tests::Tests(int i, int j) : _constructorMethod{ 2 }
 {
-	cout << "Ctr 2" << endl;
 }
 
-Tests::Tests(int i, int j, int k)
+Tests::Tests(int i, int j, int k) : _constructorMethod { 3 }
 {
-	cout << "Ctr 3" << endl;
-}
-
-
-void Tests::TestExplicitKeyword()
-{
-	Tests tester(1, 2);
-	Tests testerb(1, 2, 3);
-	Tests testerc{ 1,2 };
-	Tests testerd{ 1,2,3 };
-	Tests testere = { 1,2 };
-	//Tests testerf = { 1,2,3 };
 }
 
 
-void Tests::TestAssignmentOperator()
+void Tests::ResetMemoryState()
 {
-
-	cout << "TestAssignmentOperator begin" << endl;
-	vector<Widget> tools;
-	for (int i = 0; i < 10; i++)
-	{
-		tools.push_back(Widget(i));
-	}
-
-	cout << "Test if widgets calls copy ctor or assignment operator now" << endl;
-	for (Widget &t : tools)
-	{
-		Widget temp(10);
-		temp = t;
-	}
-
-	cout << "TestAssignmentOperator end" << endl;
+	Widget::widgetCount = 0;
+	Widget::assignmentCount = 0;
+	Widget::copyConstructorCount = 0;
+	Widget::moveConstructorCount = 0;
 }
 
-void Tests::TestForEachCopies()
+
+
+// AssertNoLeakyMemory
+//
+
+void Tests::AssertNoLeakyMemory()
 {
-	cout << "TestForEachCopies begin" << endl;
-	vector<Widget> tools;
-	for (int i = 0; i < 10; i++)
-	{
-		tools.push_back(Widget(i));
-	}
+	assert(Widget::widgetCount == 0);
+}
 
-	cout << "Test if any widgets get copied during for iteration" << endl;
-	for (int i = 0; i < 10; i++)
-	{
-		Widget t = tools[i];
-		cout << t.getId() << endl;
-	}
 
-	cout << "Test if widgets calls copy ctor now- using iterator" << endl;
-	typedef vector<Widget> vwid;
-	for (vwid::const_iterator iter = tools.cbegin(); iter != tools.cend(); ++iter)
-	{
-		cout << (*iter).getId() << endl;
-	}
+// AssertLeakyMemory
+//
+
+void Tests::AssertLeakyMemory()
+{
+	assert(Widget::widgetCount > 0);
+}
+
+
+// AssertAssignmentUsed
+//
+
+void Tests::AssertAssignmentUsed(int expectedAssignmentsUsed)
+{
+	assert(Widget::assignmentCount == expectedAssignmentsUsed);
+}
+
+
+// AssertCopyConstructorUsed
+//
+
+void Tests::AssertCopyConstructorUsed(int expectedCopyConstructorsUsed)
+{
+	assert(Widget::copyConstructorCount == expectedCopyConstructorsUsed);
+}
+
+
+// AssertMoveConstructorUsed
+//
+
+void Tests::AssertMoveConstructorUsed(int expectedMoveConstructorsUsed)
+{
+	assert(Widget::moveConstructorCount == expectedMoveConstructorsUsed);
+}
+
+
+
+// AssertMoveConstructorUsedGreaterThan
+//
+
+void Tests::AssertMoveConstructorUsedGreaterThan(int expectedMoveConstructorsUsed)
+{
+	assert(Widget::moveConstructorCount > expectedMoveConstructorsUsed);
+}
+
+
+
+// Test_ExplicitConstructor_ExpectOnlyExactParameterMatch
+// 
+// The Tests class has two constructors, 
+//	one with two paramters and
+//  one with three parameters.
+// The constructor with three parameters contains an explicit keyword
+// so we do expect it to work with only explicit constructor.
+//
+// Tests(int i, int j);
+// explicit Tests(int i, int j, int k);
+//
+
+void Tests::Test_ExplicitConstructor_ExpectOnlyExactParameterMatch()
+{
+	// This is calling the first constructor explicitly
+	Tests tester1(1, 2);
+	assert(tester1.GetConstructorMethod() == 2);
 	
-	cout << "Test if widgets calls copy ctor using dumb value range for" << endl;
-	for (Widget t : tools)
+	// This is calling the second constructor explicitly
+	Tests tester2(1, 2, 3);
+	assert(tester2.GetConstructorMethod() == 3);
+
+	// This is calling the first constructor explicitly using new initializer
+	Tests tester3{ 1,2 };
+	assert(tester3.GetConstructorMethod() == 2);
+
+	// This is calling the second constructor explicitly using new initializer
+	Tests tester4{ 1,2,3 };
+	assert(tester4.GetConstructorMethod() == 3);
+
+	// This is calling the first constructor implicitly
+	Tests tester5 = { 1,2 };
+	assert(tester5.GetConstructorMethod() == 2);
+
+	// This is calling the secondconstructor implicitly and does not work
+	// Tests tester6 = { 1,2,3 };
+}
+
+
+// Test_MoveUniquePtr_ExpectOriginalPtrBecomesNull
+//
+//	A unique_ptr is a smart pointer that owns and managers
+//	another object through a pointer and disposes of that object when
+//	the unique_ptr goes out of scope.
+//
+//	We can initialise a unique_ptr by either
+//	- wrapping a raw pointer  or by
+//	- using make_unique utility
+
+void Tests::Test_MoveUniquePtr_ExpectOriginalPtrBecomesNull()
+{
+	ResetMemoryState();
+
 	{
-		cout << t.getId() << endl;
-	}
+		std::unique_ptr<Widget> foo(new Widget(10));
+		std::unique_ptr<Widget> bar = make_unique<Widget>(20);
+
+		assert(foo->getId() == 10);
+		assert(bar->getId() == 20);
+
+		// We can also use auto to make code more readable
+		auto widget1 = std::make_unique<Widget>(9);
+
+		// unique_ptrs cannot be copied, only moved.
+		// There is only one single owner of a unique_ptr.
+		// Once ownership moved between owners, the original owner 
+		// is null.
+
+		auto widget2 = move(widget1);
+		assert(widget2->getId() == 9);
+		assert(widget1 == nullptr);
+
+		// All widgets should get destroyed at end of this scope
+	}	
+
+	AssertNoLeakyMemory();
+}
 
 
-	cout << "Test if widgets calls copy ctor now" << endl;
-	for (Widget &t : tools)
+// Test_VectorOfRawPointers_ExpectMemoryLeak
+// 
+// Using raw pointers is usually a bad idea because
+// we have to ensure their memory allocations get cleaned up.
+//
+
+void Tests::Test_VectorOfRawPointers_ExpectMemoryLeak()
+{
+	ResetMemoryState();
 	{
-		cout << t.getId() << endl;
+		vector<Widget*> tools;
+		for (int i = 0; i < 10; i++)
+		{
+			tools.push_back(new Widget(i));
+		}
+		// This is a memory leak.
 	}
-	
-	cout << "TestForEachCopies end" << endl;
+	AssertLeakyMemory();
 }
 
 
-void Tests::TestUniquePtr()
+// GetVectorOfUniqueWidgetPointers
+//
+//
+
+std::vector<std::unique_ptr<Widget>> Tests::GetVectorOfUniqueWidgetPointers()
 {
-	cout << "TestUniquePtr begin" << endl;
-
-	/*
-
-	A unique_ptr is a wrapper around a raw pointer. 
-	We can initialise a unique_ptr by either 
-	- wrapping a raw pointer  or by
-	- using make_unique utility
-
-	*/
-
-	std::unique_ptr<Widget> foo(new Widget(10));
-	std::unique_ptr<Widget> bar = make_unique<Widget>(20);
-
-	cout << foo->getId() << endl;
-	cout << bar->getId() << endl;
-
-	// We can also use auto to make code more readable
-
-	auto easyfoo = std::make_unique<Widget>(9);
-	auto easycopy = move(easyfoo);
-
-	// unique_ptrs cannot be copied, only moved
-
-
-	// All widgets should get destroyed at end of this scope
-	cout << "There should be 3 Widget destructor calls after this" << endl;
-	cout << "TestUniquePtr end" << endl;
-
-}
-
-
-void Tests::TestVectorContainerUsage()
-{
-	cout << "TestVectorContainerUsage begin" << endl;
-
-	Widget wrench(100);
-	Widget ax(50);
-
-	cout << "adding to tools" << endl;
-	vector<Widget> tools;
-	tools.push_back(wrench);
-	cout << "added wrench" << endl;
-	tools.push_back(ax);
-	cout << "added ax" << endl;
-	tools.push_back(Widget(20));
-	cout << "added temp widget" << endl;
-
-	cout << "TestVectorContainerUsage end" << endl;
-}
-
-
-
-void Tests::TestVectorOfWidgetPointers()
-{
-	cout << "TestVectorOfWidgetPointers begin" << endl;
-
-	vector<Widget *> tools;
-	for (int i=0; i<10; i++)
-	{
-		tools.push_back(new Widget(i));
-	}
-
-	// Does this work?  Is there a memory leak here?
-
-	// Vector of pointers is a bad idea because
-	// you never know when the memory pointed to by a
-	// pointer has been deleted or not.
-	//
-	// Should try a vector of smart pointers.
-
-	cout << "Any Widgets get destroyed after this point?" << endl;
-	cout << "TestVectorOfWidgetPointers end" << endl;
-}
-
-
-vector<shared_ptr<Widget>> Tests::GetVectorOfSharedWidgetPointers()
-{
-	cout << "GetVectorOfSharedWidgetPointers begin" << endl;
-
-	vector<shared_ptr<Widget>> tools;
+	std::vector<std::unique_ptr<Widget>> tools;
 	for (int i = 0; i < 10; i++)
 	{
-		tools.push_back(make_shared<Widget>(i));
+		tools.push_back(make_unique<Widget>(i));
 	}
-	cout << "GetVectorOfSharedWidgetPointers end" << endl;
-
 	return tools;
 }
 
 
-void Tests::TestVectorIteration()
-{
-	cout << "TestVectorIteration begin" << endl;
 
-	vector<shared_ptr<Widget>> tools = GetVectorOfSharedWidgetPointers();
-	for (vector<shared_ptr<Widget>>::iterator iter = tools.begin(); iter != tools.end(); iter++)
+// GetVectorOfSharedWidgetPointers
+//
+//	Initialize a vector of 10 shared pointers of widgets
+//
+
+std::vector<std::shared_ptr<Widget>> Tests::GetVectorOfSharedWidgetPointers()
+{
+	std::vector<std::shared_ptr<Widget>> tools;
+	for (int i = 0; i < 10; i++)
 	{
-		shared_ptr<Widget> tmp = *iter;
-		cout << tmp->getId() << endl;
+		tools.push_back(std::make_shared<Widget>(i));
 	}
-
-	// is there a memory leak here?
-	// or are 10 Widgets destroyed?
-
-	cout << "TestVectorIteration end" << endl;
+	return tools;
 }
 
 
-void Tests::TestLambdaOnVector()
+// Test_VectorOfSharedPointers_ExpectNoMemoryLeak
+//
+//   Initialise a vector of 10 shared ptrs of widgets
+//	 Assert that all shared ptrs are valid
+//
+
+void Tests::Test_VectorOfSharedPointers_ExpectNoMemoryLeak()
 {
-	cout << "TestLambdaOnVector begin" << endl;
+	ResetMemoryState();
+	{
+		auto tools = GetVectorOfSharedWidgetPointers();
+		int i = 0;
+		for (auto iter = tools.begin(); iter != tools.end(); iter++)
+		{
+			auto tmp = *iter;
+			assert(tmp->getId() == i++);
+		}
+	}
+	AssertNoLeakyMemory();
+}
 
-	vector<shared_ptr<Widget>> tools = GetVectorOfSharedWidgetPointers();
-	for_each(tools.begin(), tools.end(),
-		[](shared_ptr<Widget> w) { cout << w->getId() << endl; });
 
-	// is there a memory leak here?
-	// or are 10 Widgets destroyed?
+// Test_VectorOfUniquePointers_ExpectNoMemoryLeak
+//
+//   Initialise a vector of 10 unique ptrs of widgets
+//	 Assert that all unique ptrs are valid
+//
 
-	cout << "TestLambdaOnVector end" << endl;
+void Tests::Test_VectorOfUniquePointers_ExpectNoMemoryLeak()
+{
+	ResetMemoryState();
+	{
+		auto tools = GetVectorOfUniqueWidgetPointers();
+		int i = 0;
+		for (auto iter = tools.begin(); iter != tools.end(); iter++)
+		{
+			// Cannot assign unique_ptr iterator to something else
+			// otherwise, the original iterator gets wiped
+			// auto tmp = *iter;
+
+			assert((*iter)->getId() == i++);
+		}
+	}
+	AssertNoLeakyMemory();
+}
+
+
+// Test_SetObject_ExpectAssignmentOperatorUsed
+//
+
+void Tests::Test_SetObject_ExpectAssignmentOperatorUsed()
+{
+	ResetMemoryState();
+	{
+		Widget foo(10);
+		Widget bar(20);
+
+		// This uses the assignment operator
+		foo = bar;
+
+		assert(foo.getId() == 20);
+		assert(bar.getId() == 20);
+	}
+	AssertNoLeakyMemory();
+	AssertAssignmentUsed(1);
+	AssertCopyConstructorUsed(0);
+}
+
+
+// Test_ContainerPushBackWithMemoryPreallocation_ExpectCopyConstructorUsed
+//
+// When copying an object into a container, the object has a name- and so it is
+// a lvalue, not an rvalue, and so the copy operation uses a regular copy constructor
+// when copying into a container.
+//
+
+void Tests::Test_ContainerPushBackWithMemoryPreallocation_ExpectCopyConstructorUsed()
+{
+	ResetMemoryState();
+	{
+		vector<Widget> tools;
+
+		high_resolution_clock::time_point t1 = high_resolution_clock::now();
+		tools.reserve(10000);
+		for (int i = 0; i < 1000; i++)
+		{
+			Widget r(i);
+			tools.push_back(r);
+		}
+		high_resolution_clock::time_point t2 = high_resolution_clock::now();
+
+		duration<double> testTimeSpan = duration_cast<duration<double>>(t2 - t1);
+		std::cout << "TestCopyConstructorWithContainerPreallocation: ";
+		std::cout << testTimeSpan.count() << " seconds." << std::endl;
+	}
+	AssertNoLeakyMemory();
+	AssertCopyConstructorUsed(1000);
+}
+
+
+// Test_ContainerPushBackWithNoMemoryPreallocation_ExpectCopyConstructorUsed
+//
+// When copying an object into a container, the object has a name- and so it is
+// a lvalue, not an rvalue, and so the copy operation uses a regular copy constructor
+// when copying into a container.
+//
+
+void Tests::Test_ContainerPushBackWithNoMemoryPreallocation_ExpectCopyConstructorUsed()
+{
+	ResetMemoryState();
+	{
+		vector<Widget> tools;
+
+		high_resolution_clock::time_point t1 = high_resolution_clock::now();
+		for (int i = 0; i < 1000; i++)
+		{
+			Widget r(i);
+			tools.push_back(r);
+		}
+		high_resolution_clock::time_point t2 = high_resolution_clock::now();
+
+		duration<double> testTimeSpan = duration_cast<duration<double>>(t2 - t1);
+		std::cout << "TestCopyConstructorWithNoContainerPreallocation: ";
+		std::cout << testTimeSpan.count() << " seconds." << std::endl;
+	}
+	AssertNoLeakyMemory();
+	AssertCopyConstructorUsed(1000);
+}
+
+
+// Test_ContainerMovePushBackWithMemoryPreallocation_ExpectMoveConstructorUsed
+//
+// When copying an object into a container, the object is a temporary, has no name
+// and is an rvalue.  This copy operation uses a move constructor
+// when copying into a container.
+//
+// The container's memory preallocation cuts down on the amount of thrashing
+// when adding new container members.
+//
+
+void Tests::Test_ContainerMovePushBackWithMemoryPreallocation_ExpectMoveConstructorUsed()
+{
+	ResetMemoryState();
+	{
+		vector<Widget> tools;
+
+		high_resolution_clock::time_point t1 = high_resolution_clock::now();
+		tools.reserve(10000);
+		for (int i = 0; i < 1000; i++)
+		{
+			tools.push_back(Widget(i));
+		}
+		high_resolution_clock::time_point t2 = high_resolution_clock::now();
+
+		duration<double> testTimeSpan = duration_cast<duration<double>>(t2 - t1);
+		std::cout << "TestMoveConstructorWithContainerPreallocation: ";
+		std::cout << testTimeSpan.count() << " seconds." << std::endl;
+	}
+	AssertNoLeakyMemory();
+	AssertCopyConstructorUsed(0);
+	AssertMoveConstructorUsed(1000);
+}
+
+
+// Test_ContainerMovePushBackWithNoMemoryPreallocation_ExpectMoveConstructorUsed
+//
+// When copying an object into a container, the object is a temporary, has no name
+// and is an rvalue.  This copy operation uses a move constructor
+// when copying into a container.
+//
+
+void Tests::Test_ContainerMovePushBackWithNoMemoryPreallocation_ExpectMoveConstructorUsed()
+{
+	ResetMemoryState();
+	{
+		vector<Widget> tools;
+
+		high_resolution_clock::time_point t1 = high_resolution_clock::now();
+		for (int i = 0; i < 1000; i++)
+		{
+			tools.push_back(Widget(i));
+		}
+		high_resolution_clock::time_point t2 = high_resolution_clock::now();
+
+		duration<double> testTimeSpan = duration_cast<duration<double>>(t2 - t1);
+		std::cout << "TestMoveConstructorWithNoContainerPreallocation: ";
+		std::cout << testTimeSpan.count() << " seconds." << std::endl;
+	}
+	AssertNoLeakyMemory();
+	AssertCopyConstructorUsed(0);
+	AssertMoveConstructorUsedGreaterThan(3000);
+	// container makes additional moves because of container memory reallocation
+}
+
+
+// Test_ContainerOfSmartPointers_ExpectSimpleObjectConstruction
+//
+// The container of smart pointers just - add in copies of the smart pointer.
+// The widgets get constructed simply once- via copy construction.
+// 
+// So the compiled program never calls the Widget objects' copy or move constructors.
+//
+
+void Tests::Test_ContainerOfSmartPointers_ExpectSimpleObjectConstruction()
+{
+	ResetMemoryState();
+	{
+		std::vector<std::shared_ptr<Widget>> tools;
+		for (int i = 0; i < 10; i++)
+		{
+			tools.push_back(std::make_shared<Widget>(i));
+		}
+	}
+	AssertNoLeakyMemory();
+	AssertCopyConstructorUsed(0);
+	AssertMoveConstructorUsed(0);
 }
 
 
 
+// test lambda
+// 
+//for_each(tools.begin(), tools.end(),
+//	[](shared_ptr<Widget> w) { std::cout << w->getId() << std::endl; });
 
 void Tests::TestAlgoFindOnVector()
 {
-	cout << "TestAlgoFindOnVector begin" << endl;
+	std::cout << "TestAlgoFindOnVector begin" << std::endl;
 
 	vector<shared_ptr<Widget>> tools = GetVectorOfSharedWidgetPointers();
 	vector<shared_ptr<Widget>>::iterator witer = find_if(
@@ -248,29 +475,29 @@ void Tests::TestAlgoFindOnVector()
 	if (witer != tools.end())
 	{
 		shared_ptr<Widget> tmp = *witer;
-		cout << "Found " << tmp->getId() << endl;
+		std::cout << "Found " << tmp->getId() << std::endl;
 	}
 
-	cout << "TestAlgoFindOnVector end" << endl;
+	std::cout << "TestAlgoFindOnVector end" << std::endl;
 }
 
 
 
 void Tests::TestAlgoMakeHeapOnVector()
 {
-	cout << "TestAlgoMakeHeapOnVector begin" << endl;
+	std::cout << "TestAlgoMakeHeapOnVector begin" << std::endl;
 	vector<shared_ptr<Widget>> tools = GetVectorOfSharedWidgetPointers();
 
-	cout << "Regular iteration" << endl;
+	std::cout << "Regular iteration" << std::endl;
 	for_each(tools.begin(), tools.end(),
-		[](shared_ptr<Widget> w) { cout << w->getId() << endl; });
+		[](shared_ptr<Widget> w) { std::cout << w->getId() << std::endl; });
 
 	make_heap(tools.begin(), tools.end());
 	while (!tools.empty())
 	{
 		// what is topmost?
 		shared_ptr <Widget> tmp = tools.front();
-		cout << "Front: " << tmp->getId() << endl;
+		std::cout << "Front: " << tmp->getId() << std::endl;
 
 		// pop_heap moves the topmost node to back
 		pop_heap(tools.begin(), tools.end());
@@ -279,30 +506,30 @@ void Tests::TestAlgoMakeHeapOnVector()
 		tools.pop_back();
 	}
 
-	cout << "TestAlgoMakeHeapOnVector end" << endl;
+	std::cout << "TestAlgoMakeHeapOnVector end" << std::endl;
 }
 
 
 
 void Tests::TestAlgoMakeHeapOnVectorOfInts()
 {
-	cout << "TestAlgoMakeHeapOnVectorOfInts begin" << endl;
+	std::cout << "TestAlgoMakeHeapOnVectorOfInts begin" << std::endl;
 
 	vector<int> tools;
 	for (int i = 0; i < 10; i++)
 	{
 		tools.push_back(i);
 	}
-	cout << "Regular iteration" << endl;
+	std::cout << "Regular iteration" << std::endl;
 	for_each(tools.begin(), tools.end(),
-		[](int j) { cout << j << endl; });
+		[](int j) { std::cout << j << std::endl; });
 
 	make_heap(tools.begin(), tools.end());
 	while (!tools.empty())
 	{
 		// what is topmost?
 		int j = tools.front();
-		cout << "Front: " << j << endl;
+		std::cout << "Front: " << j << std::endl;
 
 		// pop_heap moves the topmost node to back
 		pop_heap(tools.begin(), tools.end());
@@ -311,32 +538,32 @@ void Tests::TestAlgoMakeHeapOnVectorOfInts()
 		tools.pop_back();
 	}
 
-	cout << "TestAlgoMakeHeapOnVectorOfInts end" << endl;
+	std::cout << "TestAlgoMakeHeapOnVectorOfInts end" << std::endl;
 }
 
 
 void Tests::TestAlgoMakeHeapOnVectorOfWidgets()
 {
-	cout << "TestAlgoMakeHeapOnVectorOfWidgets begin" << endl;
+	std::cout << "TestAlgoMakeHeapOnVectorOfWidgets begin" << std::endl;
 	vector<Widget> tools;
 	for (int i = 0; i < 10; i++)
 	{
 		tools.push_back(Widget(i));
 	}
 	(tools[2] < tools[3]) ?
-		cout << "Comparison works" << endl :
-		cout << "Comparison failed" << endl;
+		std::cout << "Comparison works" << std::endl :
+		std::cout << "Comparison failed" << std::endl;
 
-	cout << "Regular iteration" << endl;
+	std::cout << "Regular iteration" << std::endl;
 	for_each(tools.begin(), tools.end(),
-		[](Widget w) { cout << w.getId() << endl; });
+		[](Widget w) { std::cout << w.getId() << std::endl; });
 
 	make_heap(tools.begin(), tools.end());
 	while (!tools.empty())
 	{
 		// what is topmost?
 		Widget tmp = tools.front();
-		cout << "Front: " << tmp.getId() << endl;
+		std::cout << "Front: " << tmp.getId() << std::endl;
 
 		// pop_heap moves the topmost node to back
 		pop_heap(tools.begin(), tools.end());
@@ -344,74 +571,53 @@ void Tests::TestAlgoMakeHeapOnVectorOfWidgets()
 		// remove the last item
 		tools.pop_back();
 	}
-	cout << "TestAlgoMakeHeapOnVectorOfWidgets end" << endl;
+	std::cout << "TestAlgoMakeHeapOnVectorOfWidgets end" << std::endl;
 }
 
 
 void Tests::TestNewThreadWithFunction()
 {
-	cout << "TestNewThreadWithFunction begin" << endl;
+	std::cout << "TestNewThreadWithFunction begin" << std::endl;
 	thread test_thread(test_function);
 	test_thread.join();
-	cout << "TestNewThreadWithFunction end" << endl;
+	std::cout << "TestNewThreadWithFunction end" << std::endl;
 }
 
 
 
 void Tests::TestNewThreadWithLambdaFunction()
 {
-	cout << "TestNewThreadWithLambdaFunction begin" << endl;
+	std::cout << "TestNewThreadWithLambdaFunction begin" << std::endl;
 	thread test_thread([](int maxcount) {
 		for (int i = 0; i < maxcount; i++)
 		{
-			cout << i << endl;
+			std::cout << i << std::endl;
 		}
 	}, 8);
 	test_thread.join();
-	cout << "TestNewThreadWithLambdaFunction end" << endl;
+	std::cout << "TestNewThreadWithLambdaFunction end" << std::endl;
 }
 
 
 void Tests::TestVectorPushback()
 {
-	cout << "TestVectorPushback begin" << endl;
+	std::cout << "TestVectorPushback begin" << std::endl;
 
 	vector<Widget> tools;
 	for (int i = 0; i < 10; i++)
 	{
-		cout << "adding to vector begin " << i << endl;
+		std::cout << "adding to vector begin " << i << std::endl;
 		tools.push_back(Widget(i));
-		cout << "adding to vector end " << i << endl;
+		std::cout << "adding to vector end " << i << std::endl;
 	}
 
-	cout << "TestVectorPushback end" << endl;
-}
-
-
-
-void Tests::TestVectorOfSharedWidgetPointers()
-{
-	cout << "TestVectorOfSharedWidgetPointers begin" << endl;
-
-	vector<shared_ptr<Widget>> tools;
-	for (int i = 0; i < 10; i++)
-	{
-		cout << "adding to vector begin " << i << endl;
-		tools.push_back(make_shared<Widget>(i));
-		cout << "adding to vector end " << i << endl;
-	}
-
-	// is there a memory leak here?
-	// or are 10 Widgets destroyed?
-
-	cout << "10 Widgets should get destroyed after this point" << endl;
-	cout << "TestVectorOfSharedWidgetPointers end" << endl;
+	std::cout << "TestVectorPushback end" << std::endl;
 }
 
 
 void Tests::TestMoveConstructor()
 {
-	cout << "TestMoveConstructor begin" << endl;
+	std::cout << "TestMoveConstructor begin" << std::endl;
 	Widget w1(10);
 	Widget w2(w1);		// this calls regular copy constructor
 						// the original widget remains intact
@@ -419,41 +625,18 @@ void Tests::TestMoveConstructor()
 							// the move ctr sets m1 contents to null 
 							// this means the original widget is unusable
 
-	cout << w2.getId() << endl;
-	cout << w3.getId() << endl;
-	cout << w1.getId() << endl;
+	std::cout << w2.getId() << std::endl;
+	std::cout << w3.getId() << std::endl;
+	std::cout << w1.getId() << std::endl;
 
-	cout << w2.getContents(2) << endl;
-	cout << w3.getContents(2) << endl;
-	//cout << w1.getContents(2) << endl;	// this one blows up
+	std::cout << w2.getContents(2) << std::endl;
+	std::cout << w3.getContents(2) << std::endl;
+	//std::cout << w1.getContents(2) << std::endl;	// this one blows up
 
-	cout << "TestMoveConstructor end" << endl;
+	std::cout << "TestMoveConstructor end" << std::endl;
 
 }
 
-
-void Tests::TestClock()
-{
-	cout << "TestClock begin" << endl;
-
-	using namespace std::chrono;
-
-	high_resolution_clock::time_point t1 = high_resolution_clock::now();
-
-	cout << "printing out 1000 stars...\n";
-	for (int i = 0; i<1000; ++i) 
-		cout << "*";
-	cout << std::endl;
-
-	high_resolution_clock::time_point t2 = high_resolution_clock::now();
-
-	duration<double> time_span = duration_cast<duration<double>>(t2 - t1);
-	cout << "It took me " << time_span.count()  << " sseconds.";
-	cout << std::endl;
-
-
-	cout << "TestClock end" << endl;
-}
 
 
 template <typename T>
@@ -465,46 +648,46 @@ T addTwoNumbers(T a, T b)
 
 void Tests::TestGenericFunction()
 {
-	cout << "TestGenericFunction begin" << endl;
+	std::cout << "TestGenericFunction begin" << std::endl;
 
 	int a = addTwoNumbers(6, 7);
-	cout << a << endl;
+	std::cout << a << std::endl;
 
 	double d = addTwoNumbers(7.0, 5.6);
-	cout << d << endl;
+	std::cout << d << std::endl;
 
 	// the following does not work because there is no possible
 	//  addTwoNumbers(int, double) function
 	//int e = addTwoNumbers(7, 5.6);
-	//cout << e << endl;
+	//std::cout << e << std::endl;
 
-	cout << "TestGenericFunction end" << endl;
+	std::cout << "TestGenericFunction end" << std::endl;
 }
 
 
 
 void Tests::TestSetInsertAndEmplace()
 {
-	cout << "TestSetInsertAndEmplace end" << endl;
+	std::cout << "TestSetInsertAndEmplace end" << std::endl;
 	set<Widget> wset;
 	wset.insert(Widget(10));
 	auto status = wset.insert(Widget(20));
-	cout << " Result: " << status.second << endl;
+	std::cout << " Result: " << status.second << std::endl;
 		
-	cout << "Emplace with created widget" << endl;
+	std::cout << "Emplace with created widget" << std::endl;
 	wset.emplace(Widget(30));
 
-	cout << "Emplace with ctr parameters" << endl;
+	std::cout << "Emplace with ctr parameters" << std::endl;
 	wset.emplace(40);
 
-	cout << "Looks like less copying and destroying temporary objects with emplace" << endl;
+	std::cout << "Looks like less copying and destroying temporary objects with emplace" << std::endl;
 
-	cout << "Set size " << wset.size() << endl;
+	std::cout << "Set size " << wset.size() << std::endl;
 	for (auto &w : wset)
 	{
-		cout << w.getId() << endl;
+		std::cout << w.getId() << std::endl;
 	}
 	
 
-	cout << "TestSetInsertAndEmplace end" << endl;
+	std::cout << "TestSetInsertAndEmplace end" << std::endl;
 }

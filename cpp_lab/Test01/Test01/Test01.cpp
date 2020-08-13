@@ -12,14 +12,23 @@ using namespace std;
 
 int main()
 {
-	
 	Tests tester(1, 2);
-	
-	tester.TestExplicitKeyword();
-	tester.TestUniquePtr();
-	tester.TestVectorIteration();
-	tester.TestVectorOfWidgetPointers();
-	tester.TestLambdaOnVector();
+
+	tester.Test_ExplicitConstructor_ExpectOnlyExactParameterMatch();
+	tester.Test_MoveUniquePtr_ExpectOriginalPtrBecomesNull();
+	tester.Test_VectorOfRawPointers_ExpectMemoryLeak();
+	tester.Test_VectorOfSharedPointers_ExpectNoMemoryLeak();
+	tester.Test_VectorOfUniquePointers_ExpectNoMemoryLeak();
+	tester.Test_SetObject_ExpectAssignmentOperatorUsed();
+
+	tester.Test_ContainerPushBackWithNoMemoryPreallocation_ExpectCopyConstructorUsed();
+	tester.Test_ContainerMovePushBackWithNoMemoryPreallocation_ExpectMoveConstructorUsed();
+	tester.Test_ContainerPushBackWithMemoryPreallocation_ExpectCopyConstructorUsed();
+	tester.Test_ContainerMovePushBackWithMemoryPreallocation_ExpectMoveConstructorUsed();
+
+	tester.Test_ContainerOfSmartPointers_ExpectSimpleObjectConstruction();
+
+	/*
 	tester.TestAlgoFindOnVector();
 	tester.TestAlgoMakeHeapOnVector();
 	tester.TestAlgoMakeHeapOnVectorOfInts();
@@ -27,14 +36,12 @@ int main()
 	tester.TestNewThreadWithFunction();
 	tester.TestNewThreadWithLambdaFunction();
 	tester.TestForEachCopies();
-	tester.TestAssignmentOperator();
-	tester.TestVectorContainerUsage();
 	tester.TestVectorPushback();
 	tester.TestVectorOfSharedWidgetPointers();
 	tester.TestMoveConstructor();
-	tester.TestClock();
 	tester.TestGenericFunction();
 	tester.TestSetInsertAndEmplace();
+	*/
 
 	int tmp = 10;
 	int tmp2 = 40;
