@@ -14,7 +14,7 @@ public:
 	explicit FeatureTests(int i, int j, int k);
 
 	// Explicit keyword with constructor
-	void Test_ExplicitConstructor_ExpectOnlyExactParameterMatch();
+	static void Test_ExplicitConstructor_ExpectOnlyExactParameterMatch();
 
 	// Smart pointers
 	void Test_VectorOfRawPointers_ExpectMemoryLeak();

@@ -9,7 +9,7 @@ int main()
 	FeatureTests tester(1, 2);
 
 	// Explicit keyword with constructor
-	tester.Test_ExplicitConstructor_ExpectOnlyExactParameterMatch();
+	FeatureTests::Test_ExplicitConstructor_ExpectOnlyExactParameterMatch();
 
 	// Smart pointers
 	tester.Test_VectorOfRawPointers_ExpectMemoryLeak();
