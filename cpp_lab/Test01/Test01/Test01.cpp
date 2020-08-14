@@ -25,6 +25,7 @@ int main()
 	tester.Test_ContainerOfSmartPointers_ExpectSimpleObjectConstruction();
 
 	// Move semantics
+	tester.Test_MoveOperator_ExpectMoveOperatorUsed();
 	tester.Test_MoveUniquePtr_ExpectOriginalPtrBecomesNull();
 	tester.Test_ContainerPushBackWithNoMemoryPreallocation_ExpectCopyConstructorUsed();
 	tester.Test_ContainerMovePushBackWithNoMemoryPreallocation_ExpectMoveConstructorUsed();
@@ -36,7 +37,7 @@ int main()
 	tester.Test_MapForEachAlgorithmWithNamedLambda_ExpectIterationToWork();
 	tester.Test_VectorForIfAlgorithmWithAnonLambda_ExpectToFindItem();
 
-	tester.TestAlgoMakeHeapOnVectorOfInts();
+	tester.Test_MakeHeapAlgorithm_ExpectMaxNodeAtRoot();
 
 	/*
 	tester.TestAlgoMakeHeapOnVector();

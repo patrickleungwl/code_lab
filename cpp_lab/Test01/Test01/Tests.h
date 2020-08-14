@@ -24,6 +24,7 @@ public:
 	void Test_ContainerOfSmartPointers_ExpectSimpleObjectConstruction();
 
 	// Move semantics
+	void Test_MoveOperator_ExpectMoveOperatorUsed();
 	void Test_MoveUniquePtr_ExpectOriginalPtrBecomesNull();
 	void Test_ContainerPushBackWithMemoryPreallocation_ExpectCopyConstructorUsed();
 	void Test_ContainerPushBackWithNoMemoryPreallocation_ExpectCopyConstructorUsed();
@@ -35,9 +36,8 @@ public:
 	void Test_MapForEachAlgorithmWithNamedLambda_ExpectIterationToWork();
 	void Test_VectorForIfAlgorithmWithAnonLambda_ExpectToFindItem();
 
+	void Test_MakeHeapAlgorithm_ExpectMaxNodeAtRoot();
 
-	void TestAlgoMakeHeapOnVector();
-	void TestAlgoMakeHeapOnVectorOfInts();
 	void TestAlgoMakeHeapOnVectorOfWidgets();
 	void TestNewThreadWithFunction();
 	void TestNewThreadWithLambdaFunction();
@@ -46,6 +46,7 @@ public:
 	void TestSetInsertAndEmplace();
 
 private:
+	std::vector<int> GetVectorOfInts();
 	std::vector<std::shared_ptr<Widget>> GetVectorOfWidgetSharedPointers();
 	std::vector<std::unique_ptr<Widget>> GetVectorOfWidgetUniquePointers();
 	std::map<int, std::shared_ptr<Widget>> GetMapOfWidgetSharedPointers();

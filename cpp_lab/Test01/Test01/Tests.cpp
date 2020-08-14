@@ -140,6 +140,34 @@ void Tests::Test_ExplicitConstructor_ExpectOnlyExactParameterMatch()
 }
 
 
+void Tests::Test_MoveOperator_ExpectMoveOperatorUsed()
+{
+	ResetMemoryState();
+	{
+		Widget foo(10);
+		Widget bar(foo);
+		AssertCopyConstructorUsed(1);
+		AssertMoveConstructorUsed(0);
+	}
+
+	ResetMemoryState();
+	{
+		Widget foo(10);
+		Widget bar(std::move(foo));  
+
+		// std::move transforms named variable into a rvalue
+		// this forces the compiler to look for a move constructor
+		//
+		// This is fast!  No new memory allocation when creating
+		// bar.  But what happened to the memory in the original 
+		// object foo? 
+		AssertCopyConstructorUsed(0);
+		AssertMoveConstructorUsed(1);
+	}
+}
+
+
+
 // Test_MoveUniquePtr_ExpectOriginalPtrBecomesNull
 //
 //	A unique_ptr is a smart pointer that owns and managers
@@ -198,6 +226,17 @@ void Tests::Test_VectorOfRawPointers_ExpectMemoryLeak()
 		// This is a memory leak.
 	}
 	AssertLeakyMemory();
+}
+
+
+std::vector<int> Tests::GetVectorOfInts()
+{
+	std::vector<int> vec;
+	for (int i = 0; i < 10; i++)
+	{
+		vec.push_back(i);
+	}
+	return vec;
 }
 
 
@@ -544,76 +583,33 @@ void Tests::Test_VectorForIfAlgorithmWithAnonLambda_ExpectToFindItem()
 }
 
 
+// Test_MakeHeapAlgorithm_ExpectMaxNodeAtRoot
+// 
+// Transforms a vector of integers into a 
+// heap of integers. 
+//
+// A heap is a loosely ordered tree structure- 
+// where each node has smaller left and right nodes.  
+//
 
-void Tests::TestAlgoMakeHeapOnVectorOfInts()
+void Tests::Test_MakeHeapAlgorithm_ExpectMaxNodeAtRoot()
 {
-	std::cout << "TestAlgoMakeHeapOnVectorOfInts begin" << std::endl;
+	auto vec = GetVectorOfInts();
 
-	vector<int> tools;
-	for (int i = 0; i < 10; i++)
-	{
-		tools.push_back(i);
-	}
-	std::cout << "Regular iteration" << std::endl;
-	for_each(tools.begin(), tools.end(),
-		[](int j) { std::cout << j << std::endl; });
+	// get max value from vector
+	auto maxItem = std::max_element(vec.begin(), vec.end());
+	int maxValue = *maxItem;
 
-	make_heap(tools.begin(), tools.end());
+	// make a heap out of vector
+	std::make_heap(vec.begin(), vec.end());
 
-
-	std::cout << "After make heap" << std::endl;
-	for_each(tools.begin(), tools.end(),
-		[](int j) { std::cout << j << std::endl; });
-
-/*
-	while (!tools.empty())
-	{
-		// what is topmost?
-		int j = tools.front();
-		std::cout << "Front: " << j << std::endl;
-
-		// pop_heap moves the topmost node to back
-		pop_heap(tools.begin(), tools.end());
-
-		// remove the last item
-		tools.pop_back();
-	}
-*/
-	std::cout << "TestAlgoMakeHeapOnVectorOfInts end" << std::endl;
+	// ensure front of vector contains the item with max value
+	int frontItem = vec.front();
+	assert(frontItem == maxValue);
 }
 
 
-void Tests::TestAlgoMakeHeapOnVectorOfWidgets()
-{
-	std::cout << "TestAlgoMakeHeapOnVectorOfWidgets begin" << std::endl;
-	vector<Widget> tools;
-	for (int i = 0; i < 10; i++)
-	{
-		tools.push_back(Widget(i));
-	}
-	(tools[2] < tools[3]) ?
-		std::cout << "Comparison works" << std::endl :
-		std::cout << "Comparison failed" << std::endl;
 
-	std::cout << "Regular iteration" << std::endl;
-	for_each(tools.begin(), tools.end(),
-		[](Widget w) { std::cout << w.getId() << std::endl; });
-
-	make_heap(tools.begin(), tools.end());
-	while (!tools.empty())
-	{
-		// what is topmost?
-		Widget tmp = tools.front();
-		std::cout << "Front: " << tmp.getId() << std::endl;
-
-		// pop_heap moves the topmost node to back
-		pop_heap(tools.begin(), tools.end());
-
-		// remove the last item
-		tools.pop_back();
-	}
-	std::cout << "TestAlgoMakeHeapOnVectorOfWidgets end" << std::endl;
-}
 
 
 void Tests::TestNewThreadWithFunction()
