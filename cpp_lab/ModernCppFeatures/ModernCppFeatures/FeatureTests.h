@@ -32,8 +32,8 @@ public:
 	void Test_ContainerMovePushBackWithNoMemoryPreallocation_ExpectMoveConstructorUsed();
 
 	// Lambdas
-	void Test_VectorForEachAlgorithmWithNamedLambda_ExpectIterationToWork();
-	void Test_MapForEachAlgorithmWithNamedLambda_ExpectIterationToWork();
+	void Test_VectorForEachAlgorithmWithNamedLambda_ExpectForEachExecutesLambda();
+	void Test_MapForEachAlgorithmWithNamedLambda_ExpectForEachExecutesLambda();
 	void Test_VectorForIfAlgorithmWithAnonLambda_ExpectToFindItem();
 
 	void Test_MakeHeapAlgorithm_ExpectMaxNodeAtRoot();

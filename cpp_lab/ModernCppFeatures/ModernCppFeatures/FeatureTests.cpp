@@ -109,7 +109,7 @@ void FeatureTests::AssertMoveConstructorUsedGreaterThan(int expectedMoveConstruc
 // so we do expect it to work with only explicit constructor.
 //
 // Tests(int i, int j);
-// explicit Tests(int i, int j, int k);
+// explicit Tests(int i, int j, int k);Test_VectorForEachAlgorithmWithNamedLambda_ExpectIterationToWork
 //
 
 void FeatureTests::Test_ExplicitConstructor_ExpectOnlyExactParameterMatch()
@@ -515,7 +515,7 @@ void FeatureTests::Test_ContainerOfSmartPointers_ExpectSimpleObjectConstruction(
 // there is no performance difference- in this case.
 //
 
-void FeatureTests::Test_VectorForEachAlgorithmWithNamedLambda_ExpectIterationToWork()
+void FeatureTests::Test_VectorForEachAlgorithmWithNamedLambda_ExpectForEachExecutesLambda()
 {
 	auto widgetsVec = GetVectorOfWidgetSharedPointers();
 
@@ -544,7 +544,7 @@ void FeatureTests::Test_VectorForEachAlgorithmWithNamedLambda_ExpectIterationToW
 // Example of lambda usage on a map of widgets
 //
 
-void FeatureTests::Test_MapForEachAlgorithmWithNamedLambda_ExpectIterationToWork()
+void FeatureTests::Test_MapForEachAlgorithmWithNamedLambda_ExpectForEachExecutesLambda()
 {
 	auto widgetsMap = GetMapOfWidgetSharedPointers();
 

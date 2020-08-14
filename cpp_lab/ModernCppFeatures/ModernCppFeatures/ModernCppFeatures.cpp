@@ -6,10 +6,11 @@
 
 int main()
 {
-	FeatureTests tester(1, 2);
-
 	// Explicit keyword with constructor
 	FeatureTests::Test_ExplicitConstructor_ExpectOnlyExactParameterMatch();
+
+	// Let's start our tests 
+	FeatureTests tester(1, 2);
 
 	// Smart pointers
 	tester.Test_VectorOfRawPointers_ExpectMemoryLeak();
@@ -27,8 +28,8 @@ int main()
 	tester.Test_ContainerMovePushBackWithMemoryPreallocation_ExpectMoveConstructorUsed();
 
 	// Lambdas
-	tester.Test_VectorForEachAlgorithmWithNamedLambda_ExpectIterationToWork();
-	tester.Test_MapForEachAlgorithmWithNamedLambda_ExpectIterationToWork();
+	tester.Test_VectorForEachAlgorithmWithNamedLambda_ExpectForEachExecutesLambda();
+	tester.Test_MapForEachAlgorithmWithNamedLambda_ExpectForEachExecutesLambda();
 	tester.Test_VectorForIfAlgorithmWithAnonLambda_ExpectToFindItem();
 
 	tester.Test_MakeHeapAlgorithm_ExpectMaxNodeAtRoot();
