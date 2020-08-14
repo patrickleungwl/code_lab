@@ -19,6 +19,7 @@ public:
 
 	int getId() const;
 	int getContents(int memId) const;
+	void updateId(int i) { _id = i;  }
 
 	static int widgetCount;
 	static int assignmentCount;

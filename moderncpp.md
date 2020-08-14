@@ -1,5 +1,10 @@
 ## Modern Cpp Features
 
+const_cast
+static_cast
+reinterpret_cast
+dynamic_cast
+
 * lambda expressions
 * hashed containers- unordered_map
 * thread, mutex, lock
@@ -15,8 +20,15 @@ methods.  The notation for defining a lambda consists of-
 
 * capture list- list of variables to use inside lambda and whether by 
    copy or by reference
+  * [] empty capture list
+  * [&] use all local variables by reference
+  * [=] use all local variables by value
+  * [names] use all named variables by reference & or by value
+  * [&, names] use all local variables by reference except for those named
+  * [=, names] use all local variables by value except for those named
 * parameter list (optional)- parameters in the lambda
-* mutable (optional)
+* mutable (optional), rarely used modifier to allow updating the state
+   of the closure (updating the external variables)
 * noexcept (optional)
 * return type (optional)
 * body- the lambda logic

@@ -201,11 +201,11 @@ void Tests::Test_VectorOfRawPointers_ExpectMemoryLeak()
 }
 
 
-// GetVectorOfUniqueWidgetPointers
+// GetVectorOfWidgetUniquePointers
 //
 //
 
-std::vector<std::unique_ptr<Widget>> Tests::GetVectorOfUniqueWidgetPointers()
+std::vector<std::unique_ptr<Widget>> Tests::GetVectorOfWidgetUniquePointers()
 {
 	std::vector<std::unique_ptr<Widget>> tools;
 	for (int i = 0; i < 10; i++)
@@ -217,12 +217,12 @@ std::vector<std::unique_ptr<Widget>> Tests::GetVectorOfUniqueWidgetPointers()
 
 
 
-// GetVectorOfSharedWidgetPointers
+// GetVectorOfWidgetSharedPointers
 //
 //	Initialize a vector of 10 shared pointers of widgets
 //
 
-std::vector<std::shared_ptr<Widget>> Tests::GetVectorOfSharedWidgetPointers()
+std::vector<std::shared_ptr<Widget>> Tests::GetVectorOfWidgetSharedPointers()
 {
 	std::vector<std::shared_ptr<Widget>> tools;
 	for (int i = 0; i < 10; i++)
@@ -231,6 +231,23 @@ std::vector<std::shared_ptr<Widget>> Tests::GetVectorOfSharedWidgetPointers()
 	}
 	return tools;
 }
+
+
+// GetMapOfWidgetSharedPointers
+//
+// Initialise a map of 10 integers to unique pointers
+//
+
+std::map<int, std::shared_ptr<Widget>> Tests::GetMapOfWidgetSharedPointers()
+{
+	std::map<int, std::shared_ptr<Widget>> tmpDict;
+	for (int i = 0; i < 10; i++)
+	{
+		tmpDict[i] = std::make_shared<Widget>(i);
+	}
+	return tmpDict;
+}
+
 
 
 // Test_VectorOfSharedPointers_ExpectNoMemoryLeak
@@ -243,7 +260,7 @@ void Tests::Test_VectorOfSharedPointers_ExpectNoMemoryLeak()
 {
 	ResetMemoryState();
 	{
-		auto tools = GetVectorOfSharedWidgetPointers();
+		auto tools = GetVectorOfWidgetSharedPointers();
 		int i = 0;
 		for (auto iter = tools.begin(); iter != tools.end(); iter++)
 		{
@@ -265,7 +282,7 @@ void Tests::Test_VectorOfUniquePointers_ExpectNoMemoryLeak()
 {
 	ResetMemoryState();
 	{
-		auto tools = GetVectorOfUniqueWidgetPointers();
+		auto tools = GetVectorOfWidgetUniquePointers();
 		int i = 0;
 		for (auto iter = tools.begin(); iter != tools.end(); iter++)
 		{
@@ -452,61 +469,78 @@ void Tests::Test_ContainerOfSmartPointers_ExpectSimpleObjectConstruction()
 }
 
 
-
-// test lambda
+// Test_VectorForEachAlgorithmWithNamedLambda_ExpectIterationToWork
 // 
-//for_each(tools.begin(), tools.end(),
-//	[](shared_ptr<Widget> w) { std::cout << w->getId() << std::endl; });
+// Example of lambda usage on a vector of widgets
+// We also explore getting a copy of the widget smart ptr by reference
+// or by value (copy).  But since they are both copies of the widget ptr, 
+// there is no performance difference- in this case.
+//
 
-void Tests::TestAlgoFindOnVector()
+void Tests::Test_VectorForEachAlgorithmWithNamedLambda_ExpectIterationToWork()
 {
-	std::cout << "TestAlgoFindOnVector begin" << std::endl;
+	auto widgetsVec = GetVectorOfWidgetSharedPointers();
 
-	vector<shared_ptr<Widget>> tools = GetVectorOfSharedWidgetPointers();
-	vector<shared_ptr<Widget>>::iterator witer = find_if(
-		tools.begin(), 
-		tools.end(), 
-		[&](shared_ptr<Widget> const& w) {
+	auto updateWidgetPtrByRefInVec = [](std::shared_ptr<Widget> const &w) { 
+		w->updateId(w->getId() + 10); 
+	};
+
+	auto updateWidgetPtrByCopyInVec = [](std::shared_ptr<Widget> const w) {
+		w->updateId(w->getId() - 10);
+	};
+
+	for_each(widgetsVec.begin(), widgetsVec.end(), updateWidgetPtrByRefInVec);
+	for_each(widgetsVec.begin(), widgetsVec.end(), updateWidgetPtrByCopyInVec);
+
+	int i = 0;
+	for (auto w : widgetsVec) {
+		assert(w->getId() == i);
+		++i;
+	}
+}
+
+
+
+// Test_MapForEachAlgorithmWithNamedLambda_ExpectIterationToWork
+// 
+// Example of lambda usage on a map of widgets
+//
+
+void Tests::Test_MapForEachAlgorithmWithNamedLambda_ExpectIterationToWork()
+{
+	auto widgetsMap = GetMapOfWidgetSharedPointers();
+
+	auto checkWidgetInMap = [](std::pair<int, std::shared_ptr<Widget>> w) {
+		auto val = w.second; val->updateId(val->getId() + 10); };
+
+	for_each(widgetsMap.begin(), widgetsMap.end(), checkWidgetInMap);
+
+	int i = 0;
+	for (auto w : widgetsMap) {
+		assert(w.second->getId() == (i + 10));
+		++i;
+	}
+}
+
+
+// Test_VectorForIfAlgorithmWithAnonLambda_ExpectToFindItem
+//
+
+void Tests::Test_VectorForIfAlgorithmWithAnonLambda_ExpectToFindItem()
+{
+	auto widgetsVec = GetVectorOfWidgetSharedPointers();
+
+	auto witer = find_if(
+		widgetsVec.begin(),
+		widgetsVec.end(),
+		[](shared_ptr<Widget> const& w) {
 			return w->getId() == 5;
 		}
 	);
 
 	// found or not?
-	if (witer != tools.end())
-	{
-		shared_ptr<Widget> tmp = *witer;
-		std::cout << "Found " << tmp->getId() << std::endl;
-	}
-
-	std::cout << "TestAlgoFindOnVector end" << std::endl;
-}
-
-
-
-void Tests::TestAlgoMakeHeapOnVector()
-{
-	std::cout << "TestAlgoMakeHeapOnVector begin" << std::endl;
-	vector<shared_ptr<Widget>> tools = GetVectorOfSharedWidgetPointers();
-
-	std::cout << "Regular iteration" << std::endl;
-	for_each(tools.begin(), tools.end(),
-		[](shared_ptr<Widget> w) { std::cout << w->getId() << std::endl; });
-
-	make_heap(tools.begin(), tools.end());
-	while (!tools.empty())
-	{
-		// what is topmost?
-		shared_ptr <Widget> tmp = tools.front();
-		std::cout << "Front: " << tmp->getId() << std::endl;
-
-		// pop_heap moves the topmost node to back
-		pop_heap(tools.begin(), tools.end());
-
-		// remove the last item
-		tools.pop_back();
-	}
-
-	std::cout << "TestAlgoMakeHeapOnVector end" << std::endl;
+	assert(witer != widgetsVec.end());
+	assert((*witer)->getId() == 5);
 }
 
 
@@ -525,6 +559,13 @@ void Tests::TestAlgoMakeHeapOnVectorOfInts()
 		[](int j) { std::cout << j << std::endl; });
 
 	make_heap(tools.begin(), tools.end());
+
+
+	std::cout << "After make heap" << std::endl;
+	for_each(tools.begin(), tools.end(),
+		[](int j) { std::cout << j << std::endl; });
+
+/*
 	while (!tools.empty())
 	{
 		// what is topmost?
@@ -537,7 +578,7 @@ void Tests::TestAlgoMakeHeapOnVectorOfInts()
 		// remove the last item
 		tools.pop_back();
 	}
-
+*/
 	std::cout << "TestAlgoMakeHeapOnVectorOfInts end" << std::endl;
 }
 
@@ -596,22 +637,6 @@ void Tests::TestNewThreadWithLambdaFunction()
 	}, 8);
 	test_thread.join();
 	std::cout << "TestNewThreadWithLambdaFunction end" << std::endl;
-}
-
-
-void Tests::TestVectorPushback()
-{
-	std::cout << "TestVectorPushback begin" << std::endl;
-
-	vector<Widget> tools;
-	for (int i = 0; i < 10; i++)
-	{
-		std::cout << "adding to vector begin " << i << std::endl;
-		tools.push_back(Widget(i));
-		std::cout << "adding to vector end " << i << std::endl;
-	}
-
-	std::cout << "TestVectorPushback end" << std::endl;
 }
 
 
