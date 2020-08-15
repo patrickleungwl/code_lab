@@ -380,7 +380,7 @@ void FeatureTests::Test_ContainerPushBackWithMemoryPreallocation_ExpectCopyConst
 		high_resolution_clock::time_point t2 = high_resolution_clock::now();
 
 		duration<double> testTimeSpan = duration_cast<duration<double>>(t2 - t1);
-		std::cout << "TestCopyConstructorWithContainerPreallocation: ";
+		std::cout << "Test_ContainerPushBackWithMemoryPreallocation_ExpectCopyConstructorUsed: ";
 		std::cout << testTimeSpan.count() << " seconds." << std::endl;
 	}
 	AssertNoLeakyMemory();
@@ -410,7 +410,7 @@ void FeatureTests::Test_ContainerPushBackWithNoMemoryPreallocation_ExpectCopyCon
 		high_resolution_clock::time_point t2 = high_resolution_clock::now();
 
 		duration<double> testTimeSpan = duration_cast<duration<double>>(t2 - t1);
-		std::cout << "TestCopyConstructorWithNoContainerPreallocation: ";
+		std::cout << "Test_ContainerPushBackWithNoMemoryPreallocation_ExpectCopyConstructorUsed: ";
 		std::cout << testTimeSpan.count() << " seconds." << std::endl;
 	}
 	AssertNoLeakyMemory();
@@ -443,7 +443,7 @@ void FeatureTests::Test_ContainerMovePushBackWithMemoryPreallocation_ExpectMoveC
 		high_resolution_clock::time_point t2 = high_resolution_clock::now();
 
 		duration<double> testTimeSpan = duration_cast<duration<double>>(t2 - t1);
-		std::cout << "TestMoveConstructorWithContainerPreallocation: ";
+		std::cout << "Test_ContainerMovePushBackWithMemoryPreallocation_ExpectMoveConstructorUsed: ";
 		std::cout << testTimeSpan.count() << " seconds." << std::endl;
 	}
 	AssertNoLeakyMemory();
@@ -473,7 +473,7 @@ void FeatureTests::Test_ContainerMovePushBackWithNoMemoryPreallocation_ExpectMov
 		high_resolution_clock::time_point t2 = high_resolution_clock::now();
 
 		duration<double> testTimeSpan = duration_cast<duration<double>>(t2 - t1);
-		std::cout << "TestMoveConstructorWithNoContainerPreallocation: ";
+		std::cout << "Test_ContainerMovePushBackWithNoMemoryPreallocation_ExpectMoveConstructorUsed: ";
 		std::cout << testTimeSpan.count() << " seconds." << std::endl;
 	}
 	AssertNoLeakyMemory();
