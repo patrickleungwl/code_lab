@@ -14,7 +14,10 @@ public:
 	Widget(Widget &&other) noexcept;
 	Widget &operator=(Widget &&other) noexcept;
 
+	// used by find
 	bool operator==(const Widget &other) const;
+
+	// used for sorting by set container
 	bool operator<(const Widget &other) const;
 
 	int getId() const;
@@ -31,4 +34,15 @@ private:
 	int *pmemory;
 
 	const int widget_size = 100000;
+};
+
+
+
+class Comparators
+{
+public:
+	bool operator() (const Widget &left, const Widget &right)
+	{
+		return left.getId() > right.getId();
+	}
 };

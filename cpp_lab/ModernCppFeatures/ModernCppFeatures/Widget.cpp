@@ -76,6 +76,8 @@ Widget& Widget::operator=(Widget &&other) noexcept
 }
 
 
+// used by find
+
 bool Widget::operator==(const Widget &other) const
 {
 	bool result = false;
@@ -85,10 +87,12 @@ bool Widget::operator==(const Widget &other) const
 }
 
 
+// used for sorting by set container
+
 bool Widget::operator<(const Widget &other) const
 {
 	bool result = false;
-	if (this->_id > other._id)
+	if (this->_id < other._id)
 		result = true;
 	return result;
 }

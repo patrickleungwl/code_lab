@@ -1,6 +1,7 @@
 #include <iostream>
 #include <memory>
 #include <vector>
+#include <cstdlib>
 #include <algorithm>
 #include <thread>
 #include <chrono>
@@ -17,11 +18,13 @@ int Widget::assignmentCount = 0;
 int Widget::copyConstructorCount = 0;
 int Widget::moveConstructorCount = 0;
 
-void test_function();
+static int testFlag = 0;
 
-void test_function()
+void testFunction(int i);
+
+void testFunction(int i)
 {
-	std::cout << "test_function called" << std::endl;
+	testFlag = i;
 }
 
 
@@ -609,55 +612,34 @@ void FeatureTests::Test_MakeHeapAlgorithm_ExpectMaxNodeAtRoot()
 
 
 
+// Test_JoinStdThread_ExpectWaitUntilFunctionInThreadCompletes
+//
+// Thread can pass constructor parameters 
+//
 
-
-void FeatureTests::TestNewThreadWithFunction()
+void FeatureTests::Test_JoinStdThread_ExpectWaitUntilFunctionInThreadCompletes()
 {
-	std::cout << "TestNewThreadWithFunction begin" << std::endl;
-	thread test_thread(test_function);
+	assert(testFlag == 0);
+	thread test_thread(testFunction, 10);
 	test_thread.join();
-	std::cout << "TestNewThreadWithFunction end" << std::endl;
+	assert(testFlag == 10);
 }
 
 
+// Test_JoinStdThreadwithLambda_ExpectWaitUntilLambdaFunctionInThreadCompletes
 
-void FeatureTests::TestNewThreadWithLambdaFunction()
+void FeatureTests::Test_JoinStdThreadwithLambda_ExpectWaitUntilLambdaFunctionInThreadCompletes()
 {
-	std::cout << "TestNewThreadWithLambdaFunction begin" << std::endl;
-	thread test_thread([](int maxcount) {
-		for (int i = 0; i < maxcount; i++)
-		{
-			std::cout << i << std::endl;
-		}
+	thread test_thread([](int i) {
+		testFlag = i;
 	}, 8);
 	test_thread.join();
-	std::cout << "TestNewThreadWithLambdaFunction end" << std::endl;
+	assert(testFlag == 8);
 }
 
 
-void FeatureTests::TestMoveConstructor()
-{
-	std::cout << "TestMoveConstructor begin" << std::endl;
-	Widget w1(10);
-	Widget w2(w1);		// this calls regular copy constructor
-						// the original widget remains intact
-	Widget w3(move(w1));	// this calls move contructor
-							// the move ctr sets m1 contents to null 
-							// this means the original widget is unusable
 
-	std::cout << w2.getId() << std::endl;
-	std::cout << w3.getId() << std::endl;
-	std::cout << w1.getId() << std::endl;
-
-	std::cout << w2.getContents(2) << std::endl;
-	std::cout << w3.getContents(2) << std::endl;
-	//std::cout << w1.getContents(2) << std::endl;	// this one blows up
-
-	std::cout << "TestMoveConstructor end" << std::endl;
-
-}
-
-
+// Test_ReuseGenericFunctionWithDifferentTypes_ExpectFunctionReuse
 
 template <typename T>
 T addTwoNumbers(T a, T b)
@@ -665,49 +647,149 @@ T addTwoNumbers(T a, T b)
 	return a + b;
 }
 
-
-void FeatureTests::TestGenericFunction()
+void FeatureTests::Test_ReuseGenericFunctionWithDifferentTypes_ExpectFunctionReuse()
 {
-	std::cout << "TestGenericFunction begin" << std::endl;
-
 	int a = addTwoNumbers(6, 7);
-	std::cout << a << std::endl;
+	assert(a == 13);
 
 	double d = addTwoNumbers(7.0, 5.6);
-	std::cout << d << std::endl;
-
-	// the following does not work because there is no possible
-	//  addTwoNumbers(int, double) function
-	//int e = addTwoNumbers(7, 5.6);
-	//std::cout << e << std::endl;
-
-	std::cout << "TestGenericFunction end" << std::endl;
+	assert(d == 12.6);
 }
 
 
+// Test_SetInsertAndEmplace_ExpectWidgetsInserted
+//
+// Insert takes as argument an object of the container's type.
+// Emplace takes as argument the container's type's arguments- for constructing
+//  a dummy object to insert into the container.
+//
+// The return result of an insert or emplace operation is a pair
+// the first item being the iterator to the inserted item
+// the second item being a true/false status of the operation
+//
 
-void FeatureTests::TestSetInsertAndEmplace()
+void FeatureTests::Test_SetInsertAndEmplace_ExpectWidgetsInserted()
 {
-	std::cout << "TestSetInsertAndEmplace end" << std::endl;
 	set<Widget> wset;
-	wset.insert(Widget(10));
-	auto status = wset.insert(Widget(20));
-	std::cout << " Result: " << status.second << std::endl;
+	auto status = wset.insert(Widget(10));
+	assert(status.second == true);
 		
-	std::cout << "Emplace with created widget" << std::endl;
-	wset.emplace(Widget(30));
+	status = wset.emplace(Widget(30));
+	assert(status.second == true);
 
-	std::cout << "Emplace with ctr parameters" << std::endl;
-	wset.emplace(40);
+	status = wset.emplace(40);
+	assert(status.second == true);
 
-	std::cout << "Looks like less copying and destroying temporary objects with emplace" << std::endl;
+	assert(wset.size() == 3);
+}
 
-	std::cout << "Set size " << wset.size() << std::endl;
-	for (auto &w : wset)
-	{
-		std::cout << w.getId() << std::endl;
+
+// Test_SetInsert_ExpectSetOrderedByValue
+//
+// Set, standard container
+// - does not contain duplicate elements
+// - can contain any specified type specified in template
+// - stores elements in balanced binary tree
+// - by default set uses the operator < for sorting and finding 
+//
+
+void FeatureTests::Test_SetInsert_ExpectSetOrderedByValue()
+{
+	set<int> mySet;
+
+	for (int i = 0; i < 10; i++) {
+		int r = rand() % 10000;  // 0 to 9999
+		mySet.insert(r);
 	}
-	
 
-	std::cout << "TestSetInsertAndEmplace end" << std::endl;
+	int prevNum = -1;
+	for (auto s : mySet) {
+		assert(s >= prevNum);
+		prevNum = s;
+	}
+}
+
+
+// Test_SetFindUsesLessThanOperator_ExpectToFindItemInSet
+//
+
+void FeatureTests::Test_SetFindUsesLessThanOperator_ExpectToFindItemInSet()
+{
+	set<Widget> mySet;
+
+	mySet.insert(Widget(20000));
+	for (int i = 0; i < 10; i++) {
+		int r = rand() % 10000;  // 0 to 9999
+		mySet.insert(Widget(r));
+	}
+
+	Widget target(20000);
+	auto iter = mySet.find(target);
+	assert(iter != mySet.end());
+	assert(iter->getId() == target.getId());
+}
+
+
+// Test_SetOrderByStdSortWithCustomOperator_ExpectSortByCustomOperator
+// 
+// Use a custom functor to sort a set's items.
+//
+
+void FeatureTests::Test_SetOrderByStdSortWithCustomOperator_ExpectSortByCustomOperator()
+{
+	set<Widget, Comparators> mySet;
+
+	for (int i = 0; i < 10; i++) {
+		int r = rand() % 10000;  // 0 to 9999
+		mySet.insert(Widget(r));
+	}
+
+	for (auto s : mySet) {
+		std::cout << s.getId() << std::endl;
+	}
+
+}
+
+
+void FeatureTests::Test_Constness_ExpectConst()
+{
+	// these are just bad programming examples
+	// do not use for real
+	int tmp = 10;
+	int tmp2 = 20;
+
+	// Read from right to left.
+	// For example- int* const p
+	// Reading this from right to left gives us
+	// p is a const pointer to an int
+	//
+	// On the other hand,
+	// int const* p
+	// will read as 
+	// p is a pointer to a const int
+
+	// pointer to integer
+	int *p0 = &tmp;
+	*p0 = 3;	// this compiles
+
+	const int* p1 = &tmp;
+	// *p = 5;		does not compile
+
+	int* const p2 = &tmp;
+	//p2 = new int[10]; // DOES NOT COMPILE
+
+}
+
+
+// Test_DeclType_ExpectUsageExample
+//
+// decltype returns the type of the variable or function or template
+//
+
+void FeatureTests::Test_DeclType_ExpectUsageExample()
+{
+	int a = 1;
+	decltype(a) b = a;
+
+	assert(b == a);
 }

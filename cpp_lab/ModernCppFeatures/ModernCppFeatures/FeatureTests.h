@@ -36,14 +36,24 @@ public:
 	void Test_MapForEachAlgorithmWithNamedLambda_ExpectForEachExecutesLambda();
 	void Test_VectorForIfAlgorithmWithAnonLambda_ExpectToFindItem();
 
+	// Algorithms
 	void Test_MakeHeapAlgorithm_ExpectMaxNodeAtRoot();
 
-	void TestAlgoMakeHeapOnVectorOfWidgets();
-	void TestNewThreadWithFunction();
-	void TestNewThreadWithLambdaFunction();
-	void TestMoveConstructor();
-	void TestGenericFunction();
-	void TestSetInsertAndEmplace();
+	// Threads
+	void Test_JoinStdThread_ExpectWaitUntilFunctionInThreadCompletes();
+	void Test_JoinStdThreadwithLambda_ExpectWaitUntilLambdaFunctionInThreadCompletes();
+
+	// Generics
+	void Test_ReuseGenericFunctionWithDifferentTypes_ExpectFunctionReuse();
+
+	// Set container
+	void Test_SetInsertAndEmplace_ExpectWidgetsInserted();
+	void Test_SetInsert_ExpectSetOrderedByValue();
+	void Test_SetFindUsesLessThanOperator_ExpectToFindItemInSet();
+	void Test_SetOrderByStdSortWithCustomOperator_ExpectSortByCustomOperator();
+
+	void Test_Constness_ExpectConst();
+	void Test_DeclType_ExpectUsageExample();
 
 private:
 	std::vector<int> GetVectorOfInts();
@@ -61,6 +71,5 @@ private:
 	void AssertCopyConstructorUsed(int expectedCopyConstructorsUsed);
 	void AssertMoveConstructorUsed(int expectedMoveConstructorsUsed);
 	void AssertMoveConstructorUsedGreaterThan(int expectedMoveConstructorsUsed);
-
 
 };

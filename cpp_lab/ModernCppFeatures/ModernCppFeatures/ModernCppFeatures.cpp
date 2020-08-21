@@ -34,28 +34,20 @@ int main()
 
 	tester.Test_MakeHeapAlgorithm_ExpectMaxNodeAtRoot();
 
-	/*
-	tester.TestAlgoMakeHeapOnVector();
-	tester.TestAlgoMakeHeapOnVectorOfInts();
-	tester.TestAlgoMakeHeapOnVectorOfWidgets();
-	tester.TestNewThreadWithFunction();
-	tester.TestNewThreadWithLambdaFunction();
-	tester.TestForEachCopies();
-	tester.TestMoveConstructor();
-	tester.TestGenericFunction();
-	tester.TestSetInsertAndEmplace();
-	*/
+	// Threads
+	tester.Test_JoinStdThread_ExpectWaitUntilFunctionInThreadCompletes();
+	tester.Test_JoinStdThreadwithLambda_ExpectWaitUntilLambdaFunctionInThreadCompletes();
 
-	int tmp = 10;
-	int tmp2 = 40;
-	//const int const *p = &tmp;
+	// Generics
+	tester.Test_ReuseGenericFunctionWithDifferentTypes_ExpectFunctionReuse();
 
-	//int * const pi = &tmp;
-	//pi = &tmp2;
+	// Set container
+	tester.Test_SetInsertAndEmplace_ExpectWidgetsInserted();
+	tester.Test_SetInsert_ExpectSetOrderedByValue();
+	tester.Test_SetOrderByStdSortWithCustomOperator_ExpectSortByCustomOperator();
 
-	// Let user check memory usage before exiting
-	//int i;
-	//cin >> i;
+	tester.Test_Constness_ExpectConst();
+	tester.Test_DeclType_ExpectUsageExample();
 
 	return 0;
 }
