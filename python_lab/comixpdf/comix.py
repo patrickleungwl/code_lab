@@ -43,10 +43,21 @@ def get_page_links(html):
 
 
 def download_jpg(jpg, target_filename):
-    response = requests.get(jpg, stream=True)
-    with open(target_filename, 'wb') as outfile:
-        shutil.copyfileobj(response.raw, outfile)
-    del response
+
+    num_tries = 20
+    while num_tries>0:
+        try:
+            time.sleep(4)
+            print('Trying %s' % jpg)
+            
+            response = requests.get(jpg, stream=True)
+            with open(target_filename, 'wb') as outfile:
+                shutil.copyfileobj(response.raw, outfile)
+            del response
+            break
+        except:
+            print('Unexpected error- %s' % jpg)
+        num_tries = num_tries-1
 
 
 def download_links_to_jpgs(jpgs):
