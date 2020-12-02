@@ -384,7 +384,7 @@ void FeatureTests::Test_ContainerPushBackWithMemoryPreallocation_ExpectCopyConst
 
 		duration<double> testTimeSpan = duration_cast<duration<double>>(t2 - t1);
 		std::cout << "Test_ContainerPushBackWithMemoryPreallocation_ExpectCopyConstructorUsed: ";
-		std::cout << testTimeSpan.count() << " seconds." << std::endl;
+		std::cout << testTimeSpan.count() << " seconds." << '\n';
 	}
 	AssertNoLeakyMemory();
 	AssertCopyConstructorUsed(1000);
@@ -414,7 +414,7 @@ void FeatureTests::Test_ContainerPushBackWithNoMemoryPreallocation_ExpectCopyCon
 
 		duration<double> testTimeSpan = duration_cast<duration<double>>(t2 - t1);
 		std::cout << "Test_ContainerPushBackWithNoMemoryPreallocation_ExpectCopyConstructorUsed: ";
-		std::cout << testTimeSpan.count() << " seconds." << std::endl;
+		std::cout << testTimeSpan.count() << " seconds." << '\n';
 	}
 	AssertNoLeakyMemory();
 	AssertCopyConstructorUsed(1000);
@@ -447,7 +447,7 @@ void FeatureTests::Test_ContainerMovePushBackWithMemoryPreallocation_ExpectMoveC
 
 		duration<double> testTimeSpan = duration_cast<duration<double>>(t2 - t1);
 		std::cout << "Test_ContainerMovePushBackWithMemoryPreallocation_ExpectMoveConstructorUsed: ";
-		std::cout << testTimeSpan.count() << " seconds." << std::endl;
+		std::cout << testTimeSpan.count() << " seconds." << '\n';
 	}
 	AssertNoLeakyMemory();
 	AssertCopyConstructorUsed(0);
@@ -477,7 +477,7 @@ void FeatureTests::Test_ContainerMovePushBackWithNoMemoryPreallocation_ExpectMov
 
 		duration<double> testTimeSpan = duration_cast<duration<double>>(t2 - t1);
 		std::cout << "Test_ContainerMovePushBackWithNoMemoryPreallocation_ExpectMoveConstructorUsed: ";
-		std::cout << testTimeSpan.count() << " seconds." << std::endl;
+		std::cout << testTimeSpan.count() << " seconds." << '\n';
 	}
 	AssertNoLeakyMemory();
 	AssertCopyConstructorUsed(0);
@@ -745,7 +745,7 @@ void FeatureTests::Test_SetOrderByStdSortWithCustomOperator_ExpectSortByCustomOp
 	}
 
 	for (auto s : mySet) {
-		std::cout << s.getId() << std::endl;
+		std::cout << s.getId() << '\n';
 	}
 
 }

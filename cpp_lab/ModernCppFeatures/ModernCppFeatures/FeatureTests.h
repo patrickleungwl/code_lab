@@ -55,6 +55,8 @@ public:
 	void Test_Constness_ExpectConst();
 	void Test_DeclType_ExpectUsageExample();
 
+	int  GetConstructorMethod() { return _constructorMethod; }
+
 private:
 	std::vector<int> GetVectorOfInts();
 	std::vector<std::shared_ptr<Widget>> GetVectorOfWidgetSharedPointers();
@@ -62,7 +64,6 @@ private:
 	std::map<int, std::shared_ptr<Widget>> GetMapOfWidgetSharedPointers();
 	int _constructorMethod;
 
-	int  GetConstructorMethod() { return _constructorMethod; }
 	void ResetMemoryState();
 
 	void AssertNoLeakyMemory();
