@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 
 class MemoryPacket {
 public:
@@ -32,9 +33,6 @@ private:
 
 class Bear
 {
-private:
-	int _i;
-	TestInternals _m;
 public:
 	Bear() : _i(0), _m(TestInternals::ConstructorMethod::OneParam) {};
 	static int num_copied;
@@ -58,15 +56,83 @@ public:
 	TestInternals::ConstructorMethod getm() const {
 		return _m.ConstructionMethod();
 	}
+
+private:
+	int _i;
+	TestInternals _m;
 };
 
 typedef std::vector<Bear> BearVec;
 typedef std::vector<Bear *> BearPtrVec;
 
 
+
+
+class Cat
+{
+public:
+	static int num_copied;
+	static int num_assigned;
+	static int num_move_ctr;
+	static int num_move_assigned;
+
+	Cat() : _i(0), 
+			_m(TestInternals::ConstructorMethod::OneParam),
+			_name(std::make_unique<std::string>("hello"))
+	{
+	};
+
+	// copy ctor - remove it because cannot copy a unique ptr
+	Cat(const Cat& c) = delete;
+
+	// assignment operator - remove it because cannot reassign a unique ptr
+	const Cat& operator=(const Cat& b) = delete;
+
+	// move ctr
+	Cat(Cat&& other) noexcept :
+		_i(other._i),
+		_m(TestInternals::ConstructorMethod::MoveCtr),
+		_name(std::move(other._name))
+	{
+		++num_move_ctr;
+	}
+
+	// move assignment operator
+	//
+	// must guarantee noexcept because of container operations
+	Cat& operator=(Cat&& other) noexcept {
+		if (this != &other) {
+			_i = other._i;
+			_m = TestInternals::ConstructorMethod::MoveAssignOp;
+			_name = std::move(other._name);
+			++num_move_assigned;
+		}
+		return *this;
+	}
+
+	TestInternals::ConstructorMethod getm() const {
+		return _m.ConstructionMethod();
+	}
+
+private:
+	int _i;
+	TestInternals _m;
+	std::unique_ptr<std::string> _name;
+};
+
+typedef std::vector<Cat> CatVec;
+typedef std::vector<Cat*> CatPtrVec;
+
+
+
 class Widget
 {
 public:
+	static int num_copied;
+	static int num_assigned;
+	static int num_move_ctr;
+	static int num_move_assigned;
+
 	explicit Widget(int i) : 
 		_id(i), 
 		_id2(-1),
@@ -77,6 +143,7 @@ public:
 		_id(i),
 		_id2(j),
 		_ti(TestInternals::ConstructorMethod::TwoParams) {
+		//_name = std::make_unique<std::string>("hello2");
 	}
 
 	// copy ctor
@@ -84,6 +151,7 @@ public:
 		_id(w._id),
 		_id2(w._id2),
 		_ti(TestInternals::ConstructorMethod::CopyCtr) {
+		++num_copied;
 	}
 
 	// assignment operator
@@ -92,6 +160,7 @@ public:
 			_id = other._id;
 			_id2 = other._id2;
 			_ti = TestInternals::ConstructorMethod::AssignOp;
+			++num_assigned;
 		}
 		return *this;
 	}
@@ -109,6 +178,7 @@ public:
 		_id(w._id),
 		_id2(w._id2),
 		_ti(TestInternals::ConstructorMethod::MoveCtr) {
+		++num_move_ctr;
 	}
 
 	// move assignment operator
@@ -119,6 +189,7 @@ public:
 			this->_id = other._id;
 			this->_id2 = other._id2;
 			this->_ti = TestInternals::ConstructorMethod::MoveAssignOp;
+			++num_move_assigned;
 		}
 		return *this;
 	}
@@ -134,11 +205,11 @@ public:
 		return _id;
 	}
 
-
 private:
 	int _id;
 	int _id2;
 	TestInternals _ti;
-
 };
 
+typedef std::vector<Widget> WidgetVec;
+typedef std::vector<Widget*> WidgetPtrVec;
